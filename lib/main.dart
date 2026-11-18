@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lap_timer/app/app.dart';
 import 'package:lap_timer/app/infrastructure_providers.dart';
 import 'package:lap_timer/core/storage/json_file_store.dart';
+import 'package:lap_timer/features/brake_coach/data/brake_profile_repository.dart';
 import 'package:lap_timer/features/gps/data/gps_log_repository.dart';
 import 'package:lap_timer/features/gps/gps_providers.dart';
 import 'package:lap_timer/features/race/data/race_rules_repository.dart';
@@ -41,6 +42,9 @@ Future<void> main() async {
   final raceRulesRepository = RaceRulesRepository(
     JsonFileStore(Directory('${documents.path}/race_rules')),
   );
+  final brakeProfileRepository = BrakeProfileRepository(
+    JsonFileStore(Directory('${documents.path}/brake_profiles')),
+  );
   final sessionRepository = SessionRepository(
     JsonFileStore(Directory('${documents.path}/sessions')),
   );
@@ -52,6 +56,9 @@ Future<void> main() async {
         trackRepositoryProvider.overrideWithValue(trackRepository),
         sessionRepositoryProvider.overrideWithValue(sessionRepository),
         raceRulesRepositoryProvider.overrideWithValue(raceRulesRepository),
+        brakeProfileRepositoryProvider.overrideWithValue(
+          brakeProfileRepository,
+        ),
       ],
       child: const LapTimerApp(),
     ),

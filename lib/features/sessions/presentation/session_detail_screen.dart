@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lap_timer/app/infrastructure_providers.dart';
+import 'package:lap_timer/app/routes.dart';
 import 'package:lap_timer/features/sessions/domain/session.dart';
 import 'package:lap_timer/features/timing/domain/lap_comparison.dart';
 import 'package:lap_timer/features/timing/presentation/time_format.dart';
@@ -57,6 +59,15 @@ class SessionDetailScreen extends ConsumerWidget {
             ],
           ),
           if (session.pitStops.isNotEmpty) _PitStopsCard(session: session),
+          if (session.brakeProfile != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: FilledButton.tonalIcon(
+                onPressed: () => context.push(AppRoutes.corners(session.id)),
+                icon: const Icon(Icons.speed),
+                label: Text(l10n.sessionBrakePoints),
+              ),
+            ),
           const SizedBox(height: 16),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,

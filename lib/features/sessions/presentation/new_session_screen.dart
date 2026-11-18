@@ -4,6 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lap_timer/app/infrastructure_providers.dart';
 import 'package:lap_timer/app/routes.dart';
+import 'package:lap_timer/features/brake_coach/domain/brake_alert.dart';
+import 'package:lap_timer/features/brake_coach/domain/brake_coach.dart';
+import 'package:lap_timer/features/brake_coach/domain/brake_detection.dart';
+import 'package:lap_timer/features/brake_coach/domain/brake_profile.dart';
+import 'package:lap_timer/features/brake_coach/presentation/brake_coach_options.dart';
 import 'package:lap_timer/features/gps/gps_providers.dart';
 import 'package:lap_timer/features/race/domain/race_rules.dart';
 import 'package:lap_timer/features/race/presentation/race_rules_screen.dart';
@@ -34,6 +39,7 @@ class _NewSessionScreenState extends ConsumerState<NewSessionScreen> {
   /// Selected rule set id; '' = no race rules (practice).
   String? _rulesId;
   final List<String> _drivers = [];
+  BrakeCoachChoice _brake = const BrakeCoachChoice();
 
   @override
   Widget build(BuildContext context) {
@@ -112,6 +118,13 @@ class _NewSessionScreenState extends ConsumerState<NewSessionScreen> {
             selected: {_compareMode},
             onSelectionChanged: (v) => setState(() => _compareMode = v.single),
           ),
+          if (_vehicle != VehicleType.bicycle && track != null)
+            BrakeCoachOptions(
+              trackId: track.id,
+              vehicleType: _vehicle,
+              choice: _brake,
+              onChanged: (c) => setState(() => _brake = c),
+            ),
           _RulesPicker(
             selectedId: _rulesId,
             onChanged: (id) => setState(() => _rulesId = id),
@@ -175,6 +188,30 @@ class _NewSessionScreenState extends ConsumerState<NewSessionScreen> {
     setState(() => _drivers.add(name.trim()));
   }
 
+  BrakeCoachSettings? _brakeSettings() {
+    final detection = BrakeDetectionSettings.forVehicle(_vehicle);
+    if (!_brake.enabled || detection == null) return null;
+    return BrakeCoachSettings(
+      learningLaps: _brake.learningLaps,
+      method: _brake.method,
+      detection: detection,
+      alerts: BrakeAlertSettings(
+        leadTime: Duration(milliseconds: _brake.leadTimeMs),
+        brakingG: detection.brakingG,
+      ),
+    );
+  }
+
+  BrakeProfile? _brakeProfile(String trackId) {
+    final id = _brake.profileId;
+    if (id == null) return null;
+    final all = ref.read(brakeProfilesProvider).value ?? const <BrakeProfile>[];
+    for (final p in all) {
+      if (p.id == id && p.trackId == trackId) return p;
+    }
+    return null;
+  }
+
   RaceRules? _selectedRules() {
     final all = ref.read(raceRulesProvider).value ?? const <RaceRules>[];
     if (_rulesId == '') return null;
@@ -192,6 +229,8 @@ class _NewSessionScreenState extends ConsumerState<NewSessionScreen> {
       compareMode: _compareMode,
       raceRules: _selectedRules(),
       drivers: List.of(_drivers),
+      brakeCoach: _brakeSettings(),
+      brakeProfile: _brake.enabled ? _brakeProfile(track.id) : null,
     );
     await context.push(AppRoutes.live);
   }

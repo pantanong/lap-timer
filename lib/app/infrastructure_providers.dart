@@ -1,5 +1,7 @@
 import 'package:clock/clock.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lap_timer/features/brake_coach/data/brake_profile_repository.dart';
+import 'package:lap_timer/features/brake_coach/domain/brake_profile.dart';
 import 'package:lap_timer/features/race/data/race_rules_repository.dart';
 import 'package:lap_timer/features/race/domain/race_rules.dart';
 import 'package:lap_timer/features/sessions/data/session_repository.dart';
@@ -43,4 +45,17 @@ final Provider<RaceRulesRepository> raceRulesRepositoryProvider =
 final StreamProvider<List<RaceRules>> raceRulesProvider =
     StreamProvider<List<RaceRules>>(
       (ref) => ref.watch(raceRulesRepositoryProvider).watchAll(),
+    );
+
+/// Brake profile storage. Overridden in `main.dart`.
+final Provider<BrakeProfileRepository> brakeProfileRepositoryProvider =
+    Provider<BrakeProfileRepository>(
+      (ref) =>
+          throw UnimplementedError('Override brakeProfileRepositoryProvider'),
+    );
+
+/// All saved brake profiles, updated live.
+final StreamProvider<List<BrakeProfile>> brakeProfilesProvider =
+    StreamProvider<List<BrakeProfile>>(
+      (ref) => ref.watch(brakeProfileRepositoryProvider).watchAll(),
     );

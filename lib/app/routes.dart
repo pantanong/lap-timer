@@ -1,4 +1,5 @@
 import 'package:go_router/go_router.dart';
+import 'package:lap_timer/features/brake_coach/presentation/corners_screen.dart';
 import 'package:lap_timer/features/gps/presentation/gps_monitor_screen.dart';
 import 'package:lap_timer/features/home/home_screen.dart';
 import 'package:lap_timer/features/race/presentation/race_rules_screen.dart';
@@ -41,6 +42,9 @@ abstract final class AppRoutes {
 
   /// Detail of one session.
   static String sessionDetail(String sessionId) => '/sessions/$sessionId';
+
+  /// Brake points (corners) of one session.
+  static String corners(String sessionId) => '/sessions/$sessionId/corners';
 }
 
 /// The app's single router.
@@ -88,6 +92,14 @@ final GoRouter appRouter = GoRouter(
           builder: (_, state) => SessionDetailScreen(
             sessionId: state.pathParameters['sessionId'] ?? '',
           ),
+          routes: [
+            GoRoute(
+              path: 'corners',
+              builder: (_, state) => CornersScreen(
+                sessionId: state.pathParameters['sessionId'] ?? '',
+              ),
+            ),
+          ],
         ),
       ],
     ),
