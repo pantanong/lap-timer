@@ -3,12 +3,14 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lap_timer/app/infrastructure_providers.dart';
+import 'package:lap_timer/app/routes.dart';
 import 'package:lap_timer/features/tracks/data/track_editing.dart';
 import 'package:lap_timer/features/tracks/domain/gate_line.dart';
 import 'package:lap_timer/features/tracks/domain/track.dart';
 import 'package:lap_timer/features/tracks/presentation/position_capture_notifier.dart';
 import 'package:lap_timer/features/tracks/presentation/sector_layout_card.dart';
 import 'package:lap_timer/features/tracks/presentation/text_prompt.dart';
+import 'package:lap_timer/features/tracks/presentation/track_map_view.dart';
 import 'package:lap_timer/l10n/generated/app_localizations.dart';
 import 'package:lap_timer/theme/app_colors.dart';
 import 'package:material_ui/material_ui.dart';
@@ -56,6 +58,14 @@ class TrackEditorScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          _MapPreview(track: track),
+          const SizedBox(height: 8),
+          FilledButton.tonalIcon(
+            onPressed: () => context.push(AppRoutes.trackMap(trackId)),
+            icon: const Icon(Icons.edit_location_alt),
+            label: Text(l10n.mapEditOnMap),
+          ),
+          const SizedBox(height: 12),
           const _GpsStatusCard(),
           const SizedBox(height: 12),
           _LineTile(
@@ -190,4 +200,23 @@ class _LineTile extends ConsumerWidget {
       ),
     );
   }
+}
+
+class _MapPreview extends ConsumerWidget {
+  const _MapPreview({required this.track});
+
+  final Track track;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) => ClipRRect(
+    borderRadius: BorderRadius.circular(16),
+    child: SizedBox(
+      height: 220,
+      child: TrackMapView(
+        track: track,
+        liveFix: ref.watch(positionCaptureProvider).latest,
+        interactive: false,
+      ),
+    ),
+  );
 }

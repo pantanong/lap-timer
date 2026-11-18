@@ -383,5 +383,42 @@
   "sessionTimeColumn": "Time",
   "@sessionTimeColumn": {
     "description": "Table header."
+  },
+  "mapEditOnMap": "Place lines on the map",
+  "@mapEditOnMap": {
+    "description": "Opens the satellite map editor."
+  },
+  "mapToggleImagery": "Satellite / street map",
+  "@mapToggleImagery": {
+    "description": "Switch map imagery."
+  },
+  "mapAddSplitTo": "Add split to “{layout}”",
+  "@mapAddSplitTo": {
+    "description": "Placement target: next split of a sector layout.",
+    "placeholders": {
+      "layout": {
+        "type": "String"
+      }
+    }
+  },
+  "mapTapFirstEdge": "Tap one edge of the track where the line goes.",
+  "@mapTapFirstEdge": {
+    "description": "Map placement step 1."
+  },
+  "mapTapSecondEdge": "Now tap the other edge of the track.",
+  "@mapTapSecondEdge": {
+    "description": "Map placement step 2."
+  },
+  "mapReadyToSave": "Check the red line, then save. Tap again to start over.",
+  "@mapReadyToSave": {
+    "description": "Map placement step 3."
+  },
+  "mapUndoPoint": "Undo point",
+  "@mapUndoPoint": {
+    "description": "Remove the last tapped point."
+  },
+  "mapSaveLine": "Save line",
+  "@mapSaveLine": {
+    "description": "Save the placed line."
   }
 }

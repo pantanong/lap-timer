@@ -12,6 +12,9 @@ class LocalPoint {
   /// Creates a point [x] metres east and [y] metres north of the origin.
   const LocalPoint(this.x, this.y);
 
+  /// The origin.
+  static const LocalPoint zero = LocalPoint(0, 0);
+
   /// Metres east of the projection origin.
   final double x;
 

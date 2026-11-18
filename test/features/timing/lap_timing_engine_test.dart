@@ -90,6 +90,26 @@ void main() {
     expect(laps, hasLength(3));
   });
 
+  test('a line drawn on the map (two edge points) times laps', () {
+    final proj = track.projection;
+    // Start/finish drawn across the straight from y=-8 to y=+8 at x=0.
+    final (latA, lonA) = proj.toLatLng(const LocalPoint(0, -8));
+    final (latB, lonB) = proj.toLatLng(const LocalPoint(0, 8));
+    final drawn = GateLine.fromEndpoints(latA, lonA, latB, lonB);
+    expect(drawn.travelBearingDegrees, isNull);
+    expect(drawn.widthMetres, closeTo(22, 0.01));
+    final engine = LapTimingEngine(startFinish: drawn);
+    final laps = <Lap>[];
+    for (final fix in track.drive(laps: 2)) {
+      for (final e in engine.add(fix)) {
+        if (e is LapCompleted) laps.add(e.lap);
+      }
+    }
+    expect(laps, hasLength(2));
+    // The driving direction (east) was learned from the first crossing.
+    expect(engine.learnedStartFinish.travelBearingDegrees, closeTo(90, 1));
+  });
+
   test('driving the wrong way does not count', () {
     final engine = LapTimingEngine(startFinish: gateAt(track, 0));
     final reversed = track.drive(laps: 2).toList().reversed.toList();

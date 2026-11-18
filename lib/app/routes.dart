@@ -6,6 +6,7 @@ import 'package:lap_timer/features/sessions/presentation/session_detail_screen.d
 import 'package:lap_timer/features/sessions/presentation/sessions_screen.dart';
 import 'package:lap_timer/features/timing/presentation/live_session_screen.dart';
 import 'package:lap_timer/features/tracks/presentation/track_editor_screen.dart';
+import 'package:lap_timer/features/tracks/presentation/track_map_screen.dart';
 import 'package:lap_timer/features/tracks/presentation/tracks_screen.dart';
 
 /// Route paths, kept in one place so screens never hard-code strings.
@@ -30,6 +31,9 @@ abstract final class AppRoutes {
 
   /// Editor for one track.
   static String trackEditor(String trackId) => '/tracks/$trackId';
+
+  /// Satellite map to place the lines of one track.
+  static String trackMap(String trackId) => '/tracks/$trackId/map';
 
   /// Detail of one session.
   static String sessionDetail(String sessionId) => '/sessions/$sessionId';
@@ -56,6 +60,14 @@ final GoRouter appRouter = GoRouter(
           path: ':trackId',
           builder: (_, state) =>
               TrackEditorScreen(trackId: state.pathParameters['trackId'] ?? ''),
+          routes: [
+            GoRoute(
+              path: 'map',
+              builder: (_, state) => TrackMapScreen(
+                trackId: state.pathParameters['trackId'] ?? '',
+              ),
+            ),
+          ],
         ),
       ],
     ),
