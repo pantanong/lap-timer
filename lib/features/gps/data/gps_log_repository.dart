@@ -24,28 +24,45 @@ class GpsLogInfo {
 }
 
 /// Writes fixes to a log file while a recording is active.
+///
+/// Fixes are buffered and written in chunks of 50 lines. Writes are chained
+/// one after another, so a fast receiver can never start a second write
+/// while the previous one is still running.
 class GpsLogWriter {
-  GpsLogWriter._(this.info, this._sink);
+  GpsLogWriter._(this.info, this._file);
 
   /// The log being written.
   final GpsLogInfo info;
-  final IOSink _sink;
-  int _pendingLines = 0;
+  final RandomAccessFile _file;
+  final StringBuffer _buffer = StringBuffer();
+  int _bufferedLines = 0;
+  Future<void> _pendingWrite = Future<void>.value();
+  bool _closed = false;
 
-  /// Appends one fix. Data is flushed every 50 fixes and on [close].
-  Future<void> add(GpsFix fix) async {
-    _sink.writeln(jsonEncode(fix.toJson()));
-    _pendingLines++;
-    if (_pendingLines >= 50) {
-      _pendingLines = 0;
-      await _sink.flush();
-    }
+  /// Appends one fix (buffered; written every 50 fixes and on [close]).
+  void add(GpsFix fix) {
+    if (_closed) return;
+    _buffer.writeln(jsonEncode(fix.toJson()));
+    _bufferedLines++;
+    if (_bufferedLines >= 50) _writeBuffer();
   }
 
-  /// Flushes and closes the file. Must be called when recording stops.
+  void _writeBuffer() {
+    if (_buffer.isEmpty) return;
+    final chunk = _buffer.toString();
+    _buffer.clear();
+    _bufferedLines = 0;
+    _pendingWrite = _pendingWrite.then((_) => _file.writeString(chunk));
+  }
+
+  /// Writes everything still buffered and closes the file. Safe to call
+  /// more than once.
   Future<void> close() async {
-    await _sink.flush();
-    await _sink.close();
+    if (_closed) return;
+    _closed = true;
+    _writeBuffer();
+    await _pendingWrite;
+    await _file.close();
   }
 }
 
@@ -68,7 +85,7 @@ class GpsLogRepository {
       '$stamp.ndjson',
     );
     final info = GpsLogInfo(path: file.path, createdAt: now);
-    return GpsLogWriter._(info, file.openWrite(mode: FileMode.append));
+    return GpsLogWriter._(info, await file.open(mode: FileMode.append));
   }
 
   /// All logs, newest first.

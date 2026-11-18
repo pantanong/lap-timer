@@ -87,9 +87,7 @@ void main() {
     );
     final fixes = SimulatedTrack().drive(laps: 1).take(30).toList();
     final writer = await repo.startRecording();
-    for (final fix in fixes) {
-      await writer.add(fix);
-    }
+    fixes.forEach(writer.add);
     await writer.close();
 
     final logs = await repo.listLogs();

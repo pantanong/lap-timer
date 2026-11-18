@@ -4,8 +4,13 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lap_timer/app/app.dart';
+import 'package:lap_timer/app/infrastructure_providers.dart';
+import 'package:lap_timer/core/storage/json_file_store.dart';
 import 'package:lap_timer/features/gps/data/gps_log_repository.dart';
 import 'package:lap_timer/features/gps/gps_providers.dart';
+import 'package:lap_timer/features/sessions/data/session_repository.dart';
+import 'package:lap_timer/features/tracks/data/simulator_track_preset.dart';
+import 'package:lap_timer/features/tracks/data/track_repository.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -28,10 +33,21 @@ Future<void> main() async {
   final logRepository = GpsLogRepository(
     directory: Directory('${documents.path}/gps_logs'),
   );
+  final trackRepository = TrackRepository(
+    JsonFileStore(Directory('${documents.path}/tracks')),
+    seedTracks: [simulatorTrackPreset()],
+  );
+  final sessionRepository = SessionRepository(
+    JsonFileStore(Directory('${documents.path}/sessions')),
+  );
 
   runApp(
     ProviderScope(
-      overrides: [gpsLogRepositoryProvider.overrideWithValue(logRepository)],
+      overrides: [
+        gpsLogRepositoryProvider.overrideWithValue(logRepository),
+        trackRepositoryProvider.overrideWithValue(trackRepository),
+        sessionRepositoryProvider.overrideWithValue(sessionRepository),
+      ],
       child: const LapTimerApp(),
     ),
   );

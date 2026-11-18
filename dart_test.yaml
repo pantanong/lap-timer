@@ -1,0 +1,4 @@
+tags:
+  # Local-only visual checks (need fonts from the local Flutter install).
+  screenshot:
+    skip: "Run locally with: flutter test --update-goldens --run-skipped -t screenshot"

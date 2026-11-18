@@ -1,13 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lap_timer/core/screen_awake_service.dart';
 import 'package:lap_timer/features/gps/presentation/gps_failure_message.dart';
 import 'package:lap_timer/features/gps/presentation/gps_monitor_notifier.dart';
 import 'package:lap_timer/l10n/generated/app_localizations.dart';
 import 'package:lap_timer/theme/app_colors.dart';
 import 'package:lap_timer/theme/app_theme.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:wakelock_plus/wakelock_plus.dart';
 
 /// Diagnostics screen: shows live speed, update rate and accuracy of the
 /// selected GPS source, and can record a raw log. Used to check a GPS setup
@@ -21,16 +21,19 @@ class GpsMonitorScreen extends ConsumerStatefulWidget {
 }
 
 class _GpsMonitorScreenState extends ConsumerState<GpsMonitorScreen> {
+  late final ScreenAwakeService _screenAwake;
+
   @override
   void initState() {
     super.initState();
     // Keep the screen on while this screen is visible.
-    unawaited(WakelockPlus.enable());
+    _screenAwake = ref.read(screenAwakeServiceProvider);
+    unawaited(_screenAwake.keepOn());
   }
 
   @override
   void dispose() {
-    unawaited(WakelockPlus.disable());
+    unawaited(_screenAwake.release());
     super.dispose();
   }
 

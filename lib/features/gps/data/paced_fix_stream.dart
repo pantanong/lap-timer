@@ -7,6 +7,8 @@ import 'package:lap_timer/features/gps/domain/gps_fix.dart';
 /// the real timing pipeline exactly as a GPS receiver would.
 ///
 /// [playbackSpeed] > 1 plays faster than real time (useful for testing).
+/// Only the waiting is shortened: the spacing of the timestamps is kept,
+/// so lap and sector times stay the real ones.
 Stream<GpsFix> pacedFixStream(
   Iterable<GpsFix> fixes, {
   Clock clock = const Clock(),
@@ -19,15 +21,16 @@ Stream<GpsFix> pacedFixStream(
       firstFixMicros = fix.timestampMicros;
       startWallMicros = clock.now().toUtc().microsecondsSinceEpoch;
     }
-    final offsetMicros =
-        ((fix.timestampMicros - firstFixMicros) / playbackSpeed).round();
-    final dueMicros = startWallMicros + offsetMicros;
-    final waitMicros = dueMicros - clock.now().toUtc().microsecondsSinceEpoch;
+    final offsetMicros = fix.timestampMicros - firstFixMicros;
+    final dueWallMicros =
+        startWallMicros + (offsetMicros / playbackSpeed).round();
+    final waitMicros =
+        dueWallMicros - clock.now().toUtc().microsecondsSinceEpoch;
     if (waitMicros > 0) {
       await Future<void>.delayed(Duration(microseconds: waitMicros));
     }
     yield GpsFix(
-      timestampMicros: dueMicros,
+      timestampMicros: startWallMicros + offsetMicros,
       latitude: fix.latitude,
       longitude: fix.longitude,
       speedMetresPerSecond: fix.speedMetresPerSecond,

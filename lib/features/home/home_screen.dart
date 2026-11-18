@@ -30,16 +30,32 @@ class HomeScreen extends ConsumerWidget {
             const _LogList(),
           ],
           const SizedBox(height: 24),
-          FilledButton(
+          FilledButton.icon(
             onPressed: source == null
                 ? null
-                : () => context.push(AppRoutes.gpsMonitor),
-            child: Text(
-              source == null
-                  ? l10n.homeSelectLogFirst
-                  : l10n.homeOpenGpsMonitor,
+                : () => context.push(AppRoutes.newSession),
+            icon: const Icon(Icons.flag),
+            label: Text(
+              source == null ? l10n.homeSelectLogFirst : l10n.homeNewSession,
             ),
           ),
+          const SizedBox(height: 12),
+          _NavButton(
+            icon: Icons.route,
+            label: l10n.tracksTitle,
+            route: AppRoutes.tracks,
+          ),
+          _NavButton(
+            icon: Icons.history,
+            label: l10n.historyTitle,
+            route: AppRoutes.sessions,
+          ),
+          if (source != null)
+            _NavButton(
+              icon: Icons.gps_fixed,
+              label: l10n.homeOpenGpsMonitor,
+              route: AppRoutes.gpsMonitor,
+            ),
         ],
       ),
     );
@@ -145,6 +161,28 @@ class _LogTile extends ConsumerWidget {
       trailing: selected ? const Icon(Icons.check) : null,
       onTap: () => ref.read(gpsSourceChoiceProvider.notifier).choice =
           ReplayGpsChoice(log),
+    ),
+  );
+}
+
+class _NavButton extends StatelessWidget {
+  const _NavButton({
+    required this.icon,
+    required this.label,
+    required this.route,
+  });
+
+  final IconData icon;
+  final String label;
+  final String route;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsetsDirectional.only(bottom: 8),
+    child: OutlinedButton.icon(
+      onPressed: () => context.push(route),
+      icon: Icon(icon),
+      label: Text(label),
     ),
   );
 }

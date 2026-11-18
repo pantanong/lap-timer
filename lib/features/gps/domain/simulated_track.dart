@@ -121,15 +121,18 @@ class SimulatedTrack {
   }
 
   /// Simulates [laps] laps sampled at [rateHz], starting [runUpMetres]
-  /// before the start line at time [startMicros].
+  /// before the start line at time [startMicros] and stopping
+  /// [runOutMetres] after the last crossing (so even a 1 Hz receiver gets a
+  /// fix beyond the line).
   Iterable<GpsFix> drive({
     required int laps,
     double rateHz = 10,
     double runUpMetres = 50,
+    double runOutMetres = 100,
     int startMicros = 0,
   }) sync* {
     final dt = 1 / rateHz;
-    final endDistance = laps * lapLengthMetres + runUpMetres;
+    final endDistance = laps * lapLengthMetres + runUpMetres + runOutMetres;
     var distance = 0.0;
     var timeSeconds = 0.0;
     final proj = projection;

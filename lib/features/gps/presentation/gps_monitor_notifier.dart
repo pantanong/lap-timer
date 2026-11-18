@@ -142,7 +142,7 @@ class GpsMonitorNotifier extends Notifier<GpsMonitorState> {
 
   void _onFix(GpsFix fix) {
     final writer = _writer;
-    if (writer != null) unawaited(writer.add(fix));
+    writer?.add(fix);
     state = state.copyWith(
       latestFix: fix,
       fixCount: state.fixCount + 1,

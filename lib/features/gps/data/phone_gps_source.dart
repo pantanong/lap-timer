@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:lap_timer/core/result.dart';
 import 'package:lap_timer/features/gps/data/gps_source.dart';
@@ -37,9 +38,15 @@ class PhoneGpsSource implements GpsSource {
   Stream<GpsFix> fixes() {
     // distanceFilter 0 + shortest interval: we want every fix the chip
     // produces, because lap timing interpolates between consecutive fixes.
-    final settings = AndroidSettings(
-      intervalDuration: const Duration(milliseconds: 100),
-    );
+    final settings = switch (defaultTargetPlatform) {
+      TargetPlatform.android => AndroidSettings(
+        intervalDuration: const Duration(milliseconds: 100),
+      ),
+      TargetPlatform.iOS => AppleSettings(
+        activityType: ActivityType.automotiveNavigation,
+      ),
+      _ => const LocationSettings(),
+    };
     return Geolocator.getPositionStream(locationSettings: settings).map(_toFix);
   }
 
