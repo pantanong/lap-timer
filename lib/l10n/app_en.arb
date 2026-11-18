@@ -1,0 +1,649 @@
+{
+  "@@locale": "en",
+  "appTitle": "Lap Timer",
+  "@appTitle": {
+    "description": "Application name shown in the app bar and task switcher."
+  },
+  "homeGpsSourceTitle": "GPS source",
+  "@homeGpsSourceTitle": {
+    "description": "Section header for choosing where positions come from."
+  },
+  "gpsSourcePhone": "Phone",
+  "@gpsSourcePhone": {
+    "description": "Option: use the phone's built-in GPS."
+  },
+  "gpsSourceSimulator": "Simulator",
+  "@gpsSourceSimulator": {
+    "description": "Option: use the built-in virtual car for testing."
+  },
+  "gpsSourceReplay": "Replay",
+  "@gpsSourceReplay": {
+    "description": "Option: replay a recorded GPS log."
+  },
+  "homeRecordedLogsTitle": "Recorded GPS logs",
+  "@homeRecordedLogsTitle": {
+    "description": "Section header for the list of raw GPS recordings."
+  },
+  "homeNoLogs": "No recordings yet. Record one from the GPS monitor.",
+  "@homeNoLogs": {
+    "description": "Shown when there are no GPS recordings."
+  },
+  "homeOpenGpsMonitor": "GPS monitor",
+  "@homeOpenGpsMonitor": {
+    "description": "Button that opens the GPS diagnostics screen."
+  },
+  "homeSelectLogFirst": "Select a recording to replay.",
+  "@homeSelectLogFirst": {
+    "description": "Hint when Replay is chosen but no log is selected."
+  },
+  "monitorTitle": "GPS monitor",
+  "@monitorTitle": {
+    "description": "Title of the GPS diagnostics screen."
+  },
+  "monitorStart": "Start",
+  "@monitorStart": {
+    "description": "Button: start receiving GPS."
+  },
+  "monitorStop": "Stop",
+  "@monitorStop": {
+    "description": "Button: stop receiving GPS."
+  },
+  "monitorRecord": "Record",
+  "@monitorRecord": {
+    "description": "Button: start saving raw GPS to a log file."
+  },
+  "monitorStopRecording": "Stop recording",
+  "@monitorStopRecording": {
+    "description": "Button: stop saving raw GPS."
+  },
+  "monitorRate": "Rate",
+  "@monitorRate": {
+    "description": "Label: measured fixes per second."
+  },
+  "monitorAccuracy": "Accuracy",
+  "@monitorAccuracy": {
+    "description": "Label: horizontal accuracy in metres."
+  },
+  "monitorFixes": "Fixes",
+  "@monitorFixes": {
+    "description": "Label: number of GPS fixes received."
+  },
+  "monitorWaiting": "Waiting for GPS…",
+  "@monitorWaiting": {
+    "description": "Shown before the first fix arrives."
+  },
+  "unitKmh": "km/h",
+  "@unitKmh": {
+    "description": "Speed unit, kilometres per hour."
+  },
+  "unitHz": "{value} Hz",
+  "@unitHz": {
+    "description": "Rate with unit.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "unitMetres": "{value} m",
+  "@unitMetres": {
+    "description": "Distance with unit.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "errorGpsServiceDisabled": "Location is turned off. Turn it on in system settings.",
+  "@errorGpsServiceDisabled": {
+    "description": "GPS failure message."
+  },
+  "errorGpsPermissionDenied": "Location permission is needed to time laps.",
+  "@errorGpsPermissionDenied": {
+    "description": "GPS failure message."
+  },
+  "errorGpsPermissionDeniedForever": "Location permission was refused. Allow it in system settings.",
+  "@errorGpsPermissionDeniedForever": {
+    "description": "GPS failure message."
+  },
+  "errorGpsLogUnavailable": "This recording could not be read.",
+  "@errorGpsLogUnavailable": {
+    "description": "GPS failure message."
+  },
+  "homeNewSession": "New session",
+  "@homeNewSession": {
+    "description": "Primary button: set up and start timing."
+  },
+  "actionClose": "Close",
+  "@actionClose": {
+    "description": "Generic close button."
+  },
+  "actionCancel": "Cancel",
+  "@actionCancel": {
+    "description": "Generic cancel button."
+  },
+  "actionOk": "OK",
+  "@actionOk": {
+    "description": "Generic confirm button."
+  },
+  "actionRename": "Rename",
+  "@actionRename": {
+    "description": "Rename action."
+  },
+  "actionDelete": "Delete",
+  "@actionDelete": {
+    "description": "Delete action."
+  },
+  "actionDuplicate": "Duplicate",
+  "@actionDuplicate": {
+    "description": "Duplicate action."
+  },
+  "errorGeneric": "Something went wrong.",
+  "@errorGeneric": {
+    "description": "Generic error."
+  },
+  "liveWaitingGps": "Waiting for GPS",
+  "@liveWaitingGps": {
+    "description": "Status before GPS fixes arrive."
+  },
+  "liveWaitingStartLine": "Cross the start line",
+  "@liveWaitingStartLine": {
+    "description": "Shown until the first start/finish crossing."
+  },
+  "liveLapNumber": "Lap {number}",
+  "@liveLapNumber": {
+    "description": "Current lap number.",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "liveHoldToEnd": "Hold to end the session",
+  "@liveHoldToEnd": {
+    "description": "Hint for the End button."
+  },
+  "liveEnd": "End",
+  "@liveEnd": {
+    "description": "Button that ends the session (long press)."
+  },
+  "liveNewBestLap": "New best lap",
+  "@liveNewBestLap": {
+    "description": "Banner after a best lap."
+  },
+  "liveLapComplete": "Lap complete",
+  "@liveLapComplete": {
+    "description": "Banner after a lap."
+  },
+  "livePredictedLap": "Predicted lap",
+  "@livePredictedLap": {
+    "description": "Label for the predicted lap time."
+  },
+  "liveLast": "Last",
+  "@liveLast": {
+    "description": "Label: last lap time."
+  },
+  "liveBest": "Best",
+  "@liveBest": {
+    "description": "Label: best lap time."
+  },
+  "compareBestLap": "vs Best lap",
+  "@compareBestLap": {
+    "description": "Compare mode: sectors of the best lap."
+  },
+  "compareBestSector": "vs Best sectors",
+  "@compareBestSector": {
+    "description": "Compare mode: best time of each sector."
+  },
+  "tracksTitle": "Tracks",
+  "@tracksTitle": {
+    "description": "Tracks list title."
+  },
+  "tracksNew": "New track",
+  "@tracksNew": {
+    "description": "Create a track."
+  },
+  "tracksDefaultName": "New track",
+  "@tracksDefaultName": {
+    "description": "Default name for a new track."
+  },
+  "tracksNoStartFinish": "Start/finish not set",
+  "@tracksNoStartFinish": {
+    "description": "Track without a timing line."
+  },
+  "tracksSummary": "{count, plural, =0{No sector layouts} =1{1 sector layout} other{{count} sector layouts}}",
+  "@tracksSummary": {
+    "description": "Track list subtitle.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trackSectorLayouts": "Sector layouts",
+  "@trackSectorLayouts": {
+    "description": "Section header."
+  },
+  "trackAddLayout": "New sector layout",
+  "@trackAddLayout": {
+    "description": "Create a sector layout."
+  },
+  "trackDeleteConfirm": "Delete this track?",
+  "@trackDeleteConfirm": {
+    "description": "Confirmation."
+  },
+  "trackDeleteLayoutConfirm": "Delete this sector layout?",
+  "@trackDeleteLayoutConfirm": {
+    "description": "Confirmation."
+  },
+  "trackGpsStatus": "GPS ±{accuracy} m · {speed} km/h · {seconds} s averaged",
+  "@trackGpsStatus": {
+    "description": "Live GPS info in the track editor.",
+    "placeholders": {
+      "accuracy": {
+        "type": "String"
+      },
+      "speed": {
+        "type": "String"
+      },
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "trackSetHereHint": "Tap “Set here” while driving slowly over the line, or stand on it for 10 s.",
+  "@trackSetHereHint": {
+    "description": "How to set lines."
+  },
+  "trackStartFinish": "Start / Finish",
+  "@trackStartFinish": {
+    "description": "Line name."
+  },
+  "trackPitEntry": "Pit entry",
+  "@trackPitEntry": {
+    "description": "Line name."
+  },
+  "trackPitExit": "Pit exit",
+  "@trackPitExit": {
+    "description": "Line name."
+  },
+  "trackLineSet": "Set",
+  "@trackLineSet": {
+    "description": "Line status."
+  },
+  "trackLineNotSet": "Not set",
+  "@trackLineNotSet": {
+    "description": "Line status."
+  },
+  "trackSetHere": "Set here",
+  "@trackSetHere": {
+    "description": "Button: place a line at the current position."
+  },
+  "trackMakeDefault": "Use by default",
+  "@trackMakeDefault": {
+    "description": "Make a layout the default."
+  },
+  "trackLayoutSummary": "{sectors} sectors · {splits} split lines",
+  "@trackLayoutSummary": {
+    "description": "Layout subtitle.",
+    "placeholders": {
+      "sectors": {
+        "type": "int"
+      },
+      "splits": {
+        "type": "int"
+      }
+    }
+  },
+  "trackAddSplitHere": "Add split here",
+  "@trackAddSplitHere": {
+    "description": "Button: add the next sector line at the current position."
+  },
+  "trackUndoSplit": "Remove last",
+  "@trackUndoSplit": {
+    "description": "Button: remove the last split line."
+  },
+  "newSessionTitle": "New session",
+  "@newSessionTitle": {
+    "description": "Screen title."
+  },
+  "newSessionTrack": "Track",
+  "@newSessionTrack": {
+    "description": "Label."
+  },
+  "newSessionNoTracks": "No track with a start/finish line yet. Create one under Tracks.",
+  "@newSessionNoTracks": {
+    "description": "Empty state."
+  },
+  "newSessionSectors": "Sectors",
+  "@newSessionSectors": {
+    "description": "Label."
+  },
+  "newSessionNoSectors": "No sectors",
+  "@newSessionNoSectors": {
+    "description": "Option: time whole laps only."
+  },
+  "newSessionVehicle": "Vehicle",
+  "@newSessionVehicle": {
+    "description": "Label."
+  },
+  "newSessionCompare": "Compare sectors",
+  "@newSessionCompare": {
+    "description": "Label."
+  },
+  "newSessionStart": "Start session",
+  "@newSessionStart": {
+    "description": "Button."
+  },
+  "vehicleCar": "Car",
+  "@vehicleCar": {
+    "description": "Vehicle type."
+  },
+  "vehicleKart": "Kart",
+  "@vehicleKart": {
+    "description": "Vehicle type."
+  },
+  "vehicleMotorcycle": "Moto",
+  "@vehicleMotorcycle": {
+    "description": "Vehicle type."
+  },
+  "vehicleBicycle": "Bicycle",
+  "@vehicleBicycle": {
+    "description": "Vehicle type."
+  },
+  "historyTitle": "History",
+  "@historyTitle": {
+    "description": "Sessions list title."
+  },
+  "historyEmpty": "No sessions yet.",
+  "@historyEmpty": {
+    "description": "Empty state."
+  },
+  "historyLaps": "{count, plural, =1{1 lap} other{{count} laps}}",
+  "@historyLaps": {
+    "description": "Lap count.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionOptimal": "Optimal",
+  "@sessionOptimal": {
+    "description": "Sum of best sectors."
+  },
+  "sessionLapCount": "Laps",
+  "@sessionLapCount": {
+    "description": "Label."
+  },
+  "sessionLapColumn": "Lap",
+  "@sessionLapColumn": {
+    "description": "Table header."
+  },
+  "sessionTimeColumn": "Time",
+  "@sessionTimeColumn": {
+    "description": "Table header."
+  },
+  "mapEditOnMap": "Place lines on the map",
+  "@mapEditOnMap": {
+    "description": "Opens the satellite map editor."
+  },
+  "mapToggleImagery": "Satellite / street map",
+  "@mapToggleImagery": {
+    "description": "Switch map imagery."
+  },
+  "mapAddSplitTo": "Add split to “{layout}”",
+  "@mapAddSplitTo": {
+    "description": "Placement target: next split of a sector layout.",
+    "placeholders": {
+      "layout": {
+        "type": "String"
+      }
+    }
+  },
+  "mapTapFirstEdge": "Tap one edge of the track where the line goes.",
+  "@mapTapFirstEdge": {
+    "description": "Map placement step 1."
+  },
+  "mapTapSecondEdge": "Now tap the other edge of the track.",
+  "@mapTapSecondEdge": {
+    "description": "Map placement step 2."
+  },
+  "mapReadyToSave": "Check the red line, then save. Tap again to start over.",
+  "@mapReadyToSave": {
+    "description": "Map placement step 3."
+  },
+  "mapUndoPoint": "Undo point",
+  "@mapUndoPoint": {
+    "description": "Remove the last tapped point."
+  },
+  "mapSaveLine": "Save line",
+  "@mapSaveLine": {
+    "description": "Save the placed line."
+  },
+  "livePitCount": "Pit {done}/{required}",
+  "@livePitCount": {
+    "description": "Small pit stop counter.",
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "required": {
+        "type": "int"
+      }
+    }
+  },
+  "pitLimit": "limit {limit}",
+  "@pitLimit": {
+    "description": "Pit speed limit under the big speed.",
+    "placeholders": {
+      "limit": {
+        "type": "int"
+      }
+    }
+  },
+  "pitNextDriver": "Next driver",
+  "@pitNextDriver": {
+    "description": "Label above the next driver's name."
+  },
+  "pitSameDriver": "Same driver",
+  "@pitSameDriver": {
+    "description": "Button: keep the current driver."
+  },
+  "pitSameDriverChosen": "Same driver (kept)",
+  "@pitSameDriverChosen": {
+    "description": "Button after choosing same driver."
+  },
+  "pitTime": "Pit time",
+  "@pitTime": {
+    "description": "Label: time since pit entry."
+  },
+  "pitToMinimum": "To minimum {minimum}",
+  "@pitToMinimum": {
+    "description": "Label: time left to the minimum pit time.",
+    "placeholders": {
+      "minimum": {
+        "type": "String"
+      }
+    }
+  },
+  "pitMinimumReached": "OK ✓",
+  "@pitMinimumReached": {
+    "description": "Minimum pit time reached."
+  },
+  "pitProjection": "At exit ≈ {time} · {verdict}",
+  "@pitProjection": {
+    "description": "Projected pit time at the exit line.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "verdict": {
+        "type": "String"
+      }
+    }
+  },
+  "pitOk": "OK",
+  "@pitOk": {
+    "description": "Projection is above the minimum."
+  },
+  "pitSlowDown": "SLOW DOWN",
+  "@pitSlowDown": {
+    "description": "Projection is below the minimum."
+  },
+  "pitStopComplete": "PIT STOP {number} · COMPLETE",
+  "@pitStopComplete": {
+    "description": "Pit result title.",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "pitMinimumOk": "≥ {minimum} minimum",
+  "@pitMinimumOk": {
+    "description": "Minimum pit time respected.",
+    "placeholders": {
+      "minimum": {
+        "type": "String"
+      }
+    }
+  },
+  "pitMinimumMissed": "Under {minimum} minimum",
+  "@pitMinimumMissed": {
+    "description": "Minimum pit time not respected.",
+    "placeholders": {
+      "minimum": {
+        "type": "String"
+      }
+    }
+  },
+  "pitMaxSpeed": "Max {speed} km/h",
+  "@pitMaxSpeed": {
+    "description": "Max speed in the pit lane.",
+    "placeholders": {
+      "speed": {
+        "type": "int"
+      }
+    }
+  },
+  "pitNowDriving": "{label} driving",
+  "@pitNowDriving": {
+    "description": "Who drives after the stop.",
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "actionSave": "Save",
+  "@actionSave": {
+    "description": "Save button."
+  },
+  "newSessionRules": "Race rules",
+  "@newSessionRules": {
+    "description": "Label."
+  },
+  "newSessionNoRules": "No race rules (practice)",
+  "@newSessionNoRules": {
+    "description": "Option: no pit mode."
+  },
+  "newSessionDrivers": "Drivers (in driving order)",
+  "@newSessionDrivers": {
+    "description": "Label."
+  },
+  "newSessionAddDriver": "Add driver",
+  "@newSessionAddDriver": {
+    "description": "Button / dialog title."
+  },
+  "newSessionNoPitLines": "This track has no pit entry/exit lines yet: pit mode will not start. Set them under Tracks.",
+  "@newSessionNoPitLines": {
+    "description": "Warning."
+  },
+  "rulesTitle": "Race rules",
+  "@rulesTitle": {
+    "description": "Screen title."
+  },
+  "rulesNew": "New rule set",
+  "@rulesNew": {
+    "description": "Create a rule set."
+  },
+  "rulesSummary": "Pit ≤ {limit} km/h · min {seconds} s · {stops} stop(s)",
+  "@rulesSummary": {
+    "description": "Rule set summary.",
+    "placeholders": {
+      "limit": {
+        "type": "int"
+      },
+      "seconds": {
+        "type": "int"
+      },
+      "stops": {
+        "type": "int"
+      }
+    }
+  },
+  "rulesDeleteConfirm": "Delete this rule set?",
+  "@rulesDeleteConfirm": {
+    "description": "Confirmation."
+  },
+  "rulesName": "Name",
+  "@rulesName": {
+    "description": "Field label."
+  },
+  "rulesSpeedLimit": "Pit speed limit (km/h)",
+  "@rulesSpeedLimit": {
+    "description": "Field label."
+  },
+  "rulesTargetSpeed": "Target pit speed (km/h)",
+  "@rulesTargetSpeed": {
+    "description": "Field label."
+  },
+  "rulesMinimumPitTime": "Minimum pit time, entry to exit (s)",
+  "@rulesMinimumPitTime": {
+    "description": "Field label."
+  },
+  "rulesSafetyMargin": "Safety margin added to the minimum (s)",
+  "@rulesSafetyMargin": {
+    "description": "Field label."
+  },
+  "rulesResultHold": "Show pit result after exit for (s)",
+  "@rulesResultHold": {
+    "description": "Field label."
+  },
+  "rulesRequiredStops": "Mandatory pit stops",
+  "@rulesRequiredStops": {
+    "description": "Field label."
+  },
+  "rulesResumeSpeed": "Show speed again above (km/h)",
+  "@rulesResumeSpeed": {
+    "description": "Field label."
+  },
+  "sessionDriverColumn": "Driver",
+  "@sessionDriverColumn": {
+    "description": "Table header."
+  },
+  "sessionPitMark": "(pit)",
+  "@sessionPitMark": {
+    "description": "Marks a lap through the pit lane."
+  },
+  "sessionPitStops": "Pit stops",
+  "@sessionPitStops": {
+    "description": "Section title."
+  },
+  "sessionPitStopLine": "Stop {number}: {time} · max {speed} km/h",
+  "@sessionPitStopLine": {
+    "description": "One pit stop.",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "time": {
+        "type": "String"
+      },
+      "speed": {
+        "type": "int"
+      }
+    }
+  }
+}
