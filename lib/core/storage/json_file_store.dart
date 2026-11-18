@@ -5,13 +5,16 @@ import 'dart:io';
 ///
 /// Writes go to a temporary file which is then renamed over the real one,
 /// so a crash or a dead battery mid-write never leaves a half-written,
-/// unreadable file behind.
+/// unreadable file behind. Writes to the same file are queued one after
+/// another, so two quick saves never collide.
 class JsonFileStore {
   /// Stores files inside [directory] (created on demand).
   JsonFileStore(this.directory);
 
   /// Folder holding the JSON files.
   final Directory directory;
+
+  final Map<String, Future<void>> _pendingWrites = {};
 
   File _file(String name) =>
       File('${directory.path}${Platform.pathSeparator}$name');
@@ -31,11 +34,19 @@ class JsonFileStore {
   }
 
   /// Atomically replaces [name] with [json].
-  Future<void> write(String name, Object? json) async {
+  Future<void> write(String name, Object? json) {
+    final encoded = jsonEncode(json);
+    final previous = _pendingWrites[name] ?? Future<void>.value();
+    final next = previous.then((_) => _writeNow(name, encoded));
+    _pendingWrites[name] = next;
+    return next;
+  }
+
+  Future<void> _writeNow(String name, String encoded) async {
     await directory.create(recursive: true);
     final target = _file(name);
     final temp = File('${target.path}.tmp');
-    await temp.writeAsString(jsonEncode(json), flush: true);
+    await temp.writeAsString(encoded, flush: true);
     await temp.rename(target.path);
   }
 

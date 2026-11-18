@@ -36,7 +36,7 @@ class SessionsScreen extends ConsumerWidget {
                     '${l10n.historyLaps(s.laps.length)}',
                   ),
                   trailing: Text(switch (LapReferences.from(
-                    s.laps,
+                    s.racingLaps,
                     sectorCount: s.sectorCount,
                   ).bestLap) {
                     final best? => formatLapTime(best.timeMicros),

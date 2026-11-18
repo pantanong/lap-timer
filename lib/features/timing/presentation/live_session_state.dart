@@ -1,4 +1,7 @@
 import 'package:lap_timer/features/gps/data/gps_source.dart';
+import 'package:lap_timer/features/race/domain/pit_stop.dart';
+import 'package:lap_timer/features/race/domain/race_rules.dart';
+import 'package:lap_timer/features/race/domain/stint.dart';
 import 'package:lap_timer/features/sessions/domain/session.dart';
 import 'package:lap_timer/features/timing/domain/lap.dart';
 import 'package:lap_timer/features/timing/domain/lap_comparison.dart';
@@ -14,6 +17,8 @@ class LiveSessionConfig {
     required this.vehicleType,
     this.sectorLayout,
     this.compareMode = SectorCompareMode.bestLap,
+    this.raceRules,
+    this.drivers = const [],
   });
 
   /// Track to time on (must have a start/finish line).
@@ -27,6 +32,77 @@ class LiveSessionConfig {
 
   /// What sector deltas compare against.
   final SectorCompareMode compareMode;
+
+  /// Race rules (pit lane limit, minimum pit time); null = no pit mode.
+  final RaceRules? raceRules;
+
+  /// Drivers in driving order; empty = one unnamed driver.
+  final List<String> drivers;
+}
+
+/// What the pit lane screen shows.
+@immutable
+class PitView {
+  /// Creates the view state.
+  const PitView({
+    required this.entryMicros,
+    this.maxSpeedKmh = 0,
+    this.projectedExitPitMicros,
+    this.showNextDriver = false,
+    this.nextStintLabel = '',
+    this.sameDriver = false,
+  });
+
+  /// Pit entry crossing (GPS time, µs).
+  final int entryMicros;
+
+  /// Highest speed since the entry.
+  final double maxSpeedKmh;
+
+  /// Expected total pit time at the exit line at the current speed.
+  final int? projectedExitPitMicros;
+
+  /// Show the next driver's name instead of the speed (car stopped, not
+  /// yet back above the resume speed).
+  final bool showNextDriver;
+
+  /// e.g. "Nong(2)".
+  final String nextStintLabel;
+
+  /// "Same driver" was pressed during this stop.
+  final bool sameDriver;
+
+  /// Returns a copy with the given fields replaced.
+  PitView copyWith({
+    double? maxSpeedKmh,
+    int? projectedExitPitMicros,
+    bool clearProjection = false,
+    bool? showNextDriver,
+    String? nextStintLabel,
+    bool? sameDriver,
+  }) => PitView(
+    entryMicros: entryMicros,
+    maxSpeedKmh: maxSpeedKmh ?? this.maxSpeedKmh,
+    projectedExitPitMicros: clearProjection
+        ? null
+        : projectedExitPitMicros ?? this.projectedExitPitMicros,
+    showNextDriver: showNextDriver ?? this.showNextDriver,
+    nextStintLabel: nextStintLabel ?? this.nextStintLabel,
+    sameDriver: sameDriver ?? this.sameDriver,
+  );
+}
+
+/// A finished pit stop shown on screen for a few seconds after the exit.
+@immutable
+class PitResult {
+  /// Creates the result banner.
+  const PitResult({required this.stop, required this.untilWallMicros});
+
+  /// The pit stop.
+  final PitStop stop;
+
+  /// Wall-clock time (µs) until which it stays on screen.
+  final int untilWallMicros;
 }
 
 /// Lifecycle of a live session.
@@ -88,6 +164,11 @@ class LiveSessionState {
     this.speedKmh,
     this.gpsRateHz,
     this.flash,
+    this.raceRules,
+    this.pit,
+    this.pitResult,
+    this.pitStops = const [],
+    this.currentStint,
   });
 
   /// Lifecycle step.
@@ -137,9 +218,30 @@ class LiveSessionState {
   /// Lap-complete banner, if showing.
   final LapFlash? flash;
 
-  /// References derived from [laps] (best lap, best sectors).
+  /// Race rules in force, if any.
+  final RaceRules? raceRules;
+
+  /// Set while the car is in the pit lane.
+  final PitView? pit;
+
+  /// Last pit stop, shown for a few seconds after the exit.
+  final PitResult? pitResult;
+
+  /// Completed pit stops.
+  final List<PitStop> pitStops;
+
+  /// Who is driving now, e.g. Nong(1).
+  final Stint? currentStint;
+
+  /// Laps without a pit stop: the only ones that count for best times.
+  List<Lap> get racingLaps => [
+    for (final lap in laps)
+      if (!lapIncludesPitStop(lap, pitStops)) lap,
+  ];
+
+  /// References derived from [racingLaps] (best lap, best sectors).
   LapReferences get references =>
-      LapReferences.from(laps, sectorCount: sectorCount);
+      LapReferences.from(racingLaps, sectorCount: sectorCount);
 
   /// Converts wall-clock [nowWallMicros] to estimated GPS time.
   int? gpsNowMicros(int nowWallMicros) {
@@ -169,6 +271,12 @@ class LiveSessionState {
     SectorCompareMode? compareMode,
     LapFlash? flash,
     bool clearFlash = false,
+    PitView? pit,
+    bool clearPit = false,
+    PitResult? pitResult,
+    bool clearPitResult = false,
+    List<PitStop>? pitStops,
+    Stint? currentStint,
   }) => LiveSessionState(
     status: status ?? this.status,
     failure: failure ?? this.failure,
@@ -186,5 +294,10 @@ class LiveSessionState {
     speedKmh: speedKmh ?? this.speedKmh,
     gpsRateHz: gpsRateHz ?? this.gpsRateHz,
     flash: clearFlash ? null : (flash ?? this.flash),
+    raceRules: raceRules,
+    pit: clearPit ? null : (pit ?? this.pit),
+    pitResult: clearPitResult ? null : (pitResult ?? this.pitResult),
+    pitStops: pitStops ?? this.pitStops,
+    currentStint: currentStint ?? this.currentStint,
   );
 }

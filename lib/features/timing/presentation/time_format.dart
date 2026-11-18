@@ -4,21 +4,27 @@
 /// never shows a lap faster than it really was.
 library;
 
-/// `1:37.60`, `48.36`, or `9.87` — minutes only when needed.
-/// [decimals] is 1 or 2 (tenths or hundredths).
+/// `1:37.60`, `48.36`, `9.87` or `1:00` — minutes only when needed.
+/// [decimals] is 0, 1 or 2 (seconds, tenths or hundredths).
 String formatLapTime(int micros, {int decimals = 2}) {
   final negative = micros < 0;
   final abs = micros.abs();
-  final unit = decimals == 1 ? 100000 : 10000;
-  final fractionUnits = abs ~/ unit;
-  final totalSeconds = fractionUnits ~/ (decimals == 1 ? 10 : 100);
-  final fraction = fractionUnits % (decimals == 1 ? 10 : 100);
+  final perSecond = switch (decimals) {
+    0 => 1,
+    1 => 10,
+    _ => 100,
+  };
+  final fractionUnits = abs ~/ (1000000 ~/ perSecond);
+  final totalSeconds = fractionUnits ~/ perSecond;
+  final fraction = fractionUnits % perSecond;
   final minutes = totalSeconds ~/ 60;
   final seconds = totalSeconds % 60;
-  final fractionText = fraction.toString().padLeft(decimals, '0');
+  final fractionText = decimals == 0
+      ? ''
+      : '.${fraction.toString().padLeft(decimals.clamp(1, 2), '0')}';
   final body = minutes > 0
-      ? '$minutes:${seconds.toString().padLeft(2, '0')}.$fractionText'
-      : '$seconds.$fractionText';
+      ? '$minutes:${seconds.toString().padLeft(2, '0')}$fractionText'
+      : '$seconds$fractionText';
   return negative ? '-$body' : body;
 }
 

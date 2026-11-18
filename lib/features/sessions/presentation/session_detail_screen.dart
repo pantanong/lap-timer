@@ -29,8 +29,9 @@ class SessionDetailScreen extends ConsumerWidget {
       );
     }
     final session = matches.first;
+    // Laps through the pit lane never count as best lap / best sector.
     final refs = LapReferences.from(
-      session.laps,
+      session.racingLaps,
       sectorCount: session.sectorCount,
     );
     final best = refs.bestLap;
@@ -55,6 +56,7 @@ class SessionDetailScreen extends ConsumerWidget {
               _Stat(l10n.sessionLapCount, '${session.laps.length}'),
             ],
           ),
+          if (session.pitStops.isNotEmpty) _PitStopsCard(session: session),
           const SizedBox(height: 16),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
@@ -121,6 +123,8 @@ class _LapsTable extends StatelessWidget {
       columnSpacing: 20,
       columns: [
         DataColumn(label: Text(l10n.sessionLapColumn)),
+        if (session.stints.isNotEmpty)
+          DataColumn(label: Text(l10n.sessionDriverColumn)),
         for (var i = 0; i < session.sectorCount; i++)
           DataColumn(label: Text('S${i + 1}')),
         DataColumn(label: Text(l10n.sessionTimeColumn)),
@@ -129,7 +133,15 @@ class _LapsTable extends StatelessWidget {
         for (final lap in session.laps)
           DataRow(
             cells: [
-              DataCell(Text('${lap.number}')),
+              DataCell(
+                Text(
+                  session.isPitLap(lap)
+                      ? '${lap.number} ${l10n.sessionPitMark}'
+                      : '${lap.number}',
+                ),
+              ),
+              if (session.stints.isNotEmpty)
+                DataCell(Text(session.stintOf(lap)?.label ?? '')),
               for (var i = 0; i < session.sectorCount; i++)
                 DataCell(
                   Text(
@@ -156,6 +168,40 @@ class _LapsTable extends StatelessWidget {
             ],
           ),
       ],
+    );
+  }
+}
+
+class _PitStopsCard extends StatelessWidget {
+  const _PitStopsCard({required this.session});
+
+  final Session session;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.sessionPitStops,
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
+            for (final stop in session.pitStops)
+              Text(
+                l10n.sessionPitStopLine(
+                  stop.number,
+                  formatLapTime(stop.durationMicros),
+                  stop.maxSpeedKmh.round(),
+                ),
+                style: const TextStyle(fontFeatures: AppTheme.tabularFigures),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }

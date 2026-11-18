@@ -34,17 +34,39 @@ Track simulatorTrackPreset([SimulatedTrack? simulated]) {
         ],
       ),
     ],
-    // Pit lane lines on the start/finish straight, for testing pit mode.
-    pitEntry: simulatorGateAt(sim, length - 120),
-    pitExit: simulatorGateAt(sim, 120),
+    // Pit lane beside the start/finish straight (10 m to the right of the
+    // racing line); short lines so normal laps never trigger pit mode.
+    pitEntry: simulatorGateAt(
+      sim,
+      length - 120,
+      offsetMetres: SimulatedTrack.pitLaneOffsetMetres,
+      widthMetres: 8,
+    ),
+    pitExit: simulatorGateAt(
+      sim,
+      120,
+      offsetMetres: SimulatedTrack.pitLaneOffsetMetres,
+      widthMetres: 8,
+    ),
   );
 }
 
-/// A gate across the simulated racing line at [distance] metres.
-GateLine simulatorGateAt(SimulatedTrack sim, double distance) {
-  final p = sim.pointAt(distance);
-  final ahead = sim.pointAt(distance + 1) - p;
+/// A gate across the simulated racing line at [distance] metres, optionally
+/// moved [offsetMetres] to the right (the pit lane).
+GateLine simulatorGateAt(
+  SimulatedTrack sim,
+  double distance, {
+  double offsetMetres = 0,
+  double widthMetres = 24,
+}) {
+  final p = sim.pointBeside(distance, offsetMetres);
+  final ahead = sim.pointAt(distance + 1) - sim.pointAt(distance);
   final (lat, lon) = sim.projection.toLatLng(p);
   final bearing = (math.atan2(ahead.x, ahead.y) * 180 / math.pi + 360) % 360;
-  return GateLine(latitude: lat, longitude: lon, travelBearingDegrees: bearing);
+  return GateLine(
+    latitude: lat,
+    longitude: lon,
+    travelBearingDegrees: bearing,
+    widthMetres: widthMetres,
+  );
 }

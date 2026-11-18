@@ -14,6 +14,7 @@ class SimulatedGpsSource implements GpsSource {
     this.rateHz = 10,
     this.laps = 20,
     this.playbackSpeed = 1,
+    this.pitStopAtCrossings = const {3},
     this._clock = const Clock(),
   }) : track = track ?? SimulatedTrack();
 
@@ -25,6 +26,9 @@ class SimulatedGpsSource implements GpsSource {
 
   /// Number of laps before the stream ends.
   final int laps;
+
+  /// Start/finish crossings at which the car makes a pit stop.
+  final Set<int> pitStopAtCrossings;
 
   /// 1 = real time; 2 = twice as fast, etc.
   final double playbackSpeed;
@@ -39,7 +43,13 @@ class SimulatedGpsSource implements GpsSource {
 
   @override
   Stream<GpsFix> fixes() => pacedFixStream(
-    track.drive(laps: laps, rateHz: rateHz),
+    // A 45 s pit stop at the end of lap 3, to try pit mode at a desk.
+    track.drive(
+      laps: laps,
+      rateHz: rateHz,
+      pitStopAtCrossings: pitStopAtCrossings,
+      pitStopSeconds: 45,
+    ),
     clock: _clock,
     playbackSpeed: playbackSpeed,
   );

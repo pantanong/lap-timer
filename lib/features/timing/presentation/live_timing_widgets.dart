@@ -90,12 +90,29 @@ class LiveStatusBar extends StatelessWidget {
         ),
         const Spacer(),
         Text(
-          state.currentLapStartMicros == null
-              ? l10n.liveWaitingStartLine
-              : l10n.liveLapNumber(state.lapNumber),
+          [
+            ?state.currentStint?.label,
+            if (state.currentLapStartMicros == null)
+              l10n.liveWaitingStartLine
+            else
+              l10n.liveLapNumber(state.lapNumber),
+          ].join(' · '),
           style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
         ),
         const Spacer(),
+        if (state.raceRules case final rules?)
+          Padding(
+            padding: const EdgeInsetsDirectional.only(end: 12),
+            child: Text(
+              l10n.livePitCount(state.pitStops.length, rules.requiredPitStops),
+              style: TextStyle(
+                color: state.pitStops.length >= rules.requiredPitStops
+                    ? colors.faster
+                    : colors.textMuted,
+                fontSize: 13,
+              ),
+            ),
+          ),
         Tooltip(
           message: l10n.liveHoldToEnd,
           child: OutlinedButton(

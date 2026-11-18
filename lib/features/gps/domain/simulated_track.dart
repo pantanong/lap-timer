@@ -124,37 +124,97 @@ class SimulatedTrack {
   /// before the start line at time [startMicros] and stopping
   /// [runOutMetres] after the last crossing (so even a 1 Hz receiver gets a
   /// fix beyond the line).
+  ///
+  /// Pit stops: for every start/finish crossing number in
+  /// [pitStopAtCrossings] (1 = the first time the car reaches the line
+  /// after starting), the car drives at [pitLaneSpeedKmh] from
+  /// [pitWindowMetres] before to [pitWindowMetres] after the line and
+  /// stands still on the line for [pitStopSeconds]. The pit lane runs
+  /// [pitLaneOffsetMetres] to the right of the racing line, like a real pit
+  /// lane beside the main straight.
   Iterable<GpsFix> drive({
     required int laps,
     double rateHz = 10,
     double runUpMetres = 50,
     double runOutMetres = 100,
     int startMicros = 0,
+    Set<int> pitStopAtCrossings = const {},
+    double pitLaneSpeedKmh = 50,
+    double pitWindowMetres = 150,
+    double pitStopSeconds = 30,
   }) sync* {
+    const rampMetres = 25.0;
     final dt = 1 / rateHz;
     final endDistance = laps * lapLengthMetres + runUpMetres + runOutMetres;
+    final stopDistances = {
+      for (final k in pitStopAtCrossings) k * lapLengthMetres,
+    };
+    final stopsDone = <double>{};
     var distance = 0.0;
     var timeSeconds = 0.0;
-    final proj = projection;
+    var standingUntil = -1.0;
     while (distance <= endDistance) {
       final trackDistance = distance - runUpMetres;
-      final speed = speedAt(trackDistance);
-      final p = pointAt(trackDistance);
-      final ahead = pointAt(trackDistance + 1) - p;
-      final heading =
-          (math.atan2(ahead.x, ahead.y) * 180 / math.pi + 360) % 360;
-      final (lat, lon) = proj.toLatLng(p);
-      yield GpsFix(
-        timestampMicros: startMicros + (timeSeconds * 1e6).round(),
-        latitude: lat,
-        longitude: lon,
-        speedMetresPerSecond: speed,
-        headingDegrees: heading,
-        horizontalAccuracyMetres: 1,
+      var speed = speedAt(trackDistance);
+      var offset = 0.0;
+      for (final stop in stopDistances) {
+        final fromStop = (trackDistance - stop).abs();
+        if (fromStop <= pitWindowMetres) {
+          speed = math.min(speed, pitLaneSpeedKmh / 3.6);
+          final ramp = math.min(1, (pitWindowMetres - fromStop) / rampMetres);
+          offset = pitLaneOffsetMetres * ramp;
+        }
+        // Arrived at the stop point: stand still for the stop duration.
+        if (!stopsDone.contains(stop) && trackDistance >= stop) {
+          stopsDone.add(stop);
+          standingUntil = timeSeconds + pitStopSeconds;
+        }
+      }
+      final standing = timeSeconds < standingUntil;
+      yield _fixAt(
+        trackDistance,
+        standing ? 0 : speed,
+        startMicros + (timeSeconds * 1e6).round(),
+        offsetMetres: offset,
       );
-      distance += speed * dt;
+      if (!standing) distance += speed * dt;
       timeSeconds += dt;
     }
+  }
+
+  /// Offset of the simulated pit lane, metres to the right of the racing
+  /// line.
+  static const double pitLaneOffsetMetres = 10;
+
+  /// Point [offsetMetres] to the right of the racing line at [distance].
+  LocalPoint pointBeside(double distance, double offsetMetres) {
+    final p = pointAt(distance);
+    final ahead = pointAt(distance + 1) - p;
+    final length = ahead.length;
+    if (length == 0 || offsetMetres == 0) return p;
+    // Right-hand normal of the driving direction.
+    final right = LocalPoint(ahead.y / length, -ahead.x / length);
+    return p + right * offsetMetres;
+  }
+
+  GpsFix _fixAt(
+    double trackDistance,
+    double speed,
+    int timestampMicros, {
+    double offsetMetres = 0,
+  }) {
+    final p = pointBeside(trackDistance, offsetMetres);
+    final ahead = pointAt(trackDistance + 1) - pointAt(trackDistance);
+    final heading = (math.atan2(ahead.x, ahead.y) * 180 / math.pi + 360) % 360;
+    final (lat, lon) = projection.toLatLng(p);
+    return GpsFix(
+      timestampMicros: timestampMicros,
+      latitude: lat,
+      longitude: lon,
+      speedMetresPerSecond: speed,
+      headingDegrees: heading,
+      horizontalAccuracyMetres: 1,
+    );
   }
 
   /// Corner limit, then a backward pass (braking) and a forward pass

@@ -8,6 +8,7 @@ import 'package:lap_timer/app/infrastructure_providers.dart';
 import 'package:lap_timer/core/storage/json_file_store.dart';
 import 'package:lap_timer/features/gps/data/gps_log_repository.dart';
 import 'package:lap_timer/features/gps/gps_providers.dart';
+import 'package:lap_timer/features/race/data/race_rules_repository.dart';
 import 'package:lap_timer/features/sessions/data/session_repository.dart';
 import 'package:lap_timer/features/tracks/data/simulator_track_preset.dart';
 import 'package:lap_timer/features/tracks/data/track_repository.dart';
@@ -37,6 +38,9 @@ Future<void> main() async {
     JsonFileStore(Directory('${documents.path}/tracks')),
     seedTracks: [simulatorTrackPreset()],
   );
+  final raceRulesRepository = RaceRulesRepository(
+    JsonFileStore(Directory('${documents.path}/race_rules')),
+  );
   final sessionRepository = SessionRepository(
     JsonFileStore(Directory('${documents.path}/sessions')),
   );
@@ -47,6 +51,7 @@ Future<void> main() async {
         gpsLogRepositoryProvider.overrideWithValue(logRepository),
         trackRepositoryProvider.overrideWithValue(trackRepository),
         sessionRepositoryProvider.overrideWithValue(sessionRepository),
+        raceRulesRepositoryProvider.overrideWithValue(raceRulesRepository),
       ],
       child: const LapTimerApp(),
     ),

@@ -1,6 +1,7 @@
 import 'package:go_router/go_router.dart';
 import 'package:lap_timer/features/gps/presentation/gps_monitor_screen.dart';
 import 'package:lap_timer/features/home/home_screen.dart';
+import 'package:lap_timer/features/race/presentation/race_rules_screen.dart';
 import 'package:lap_timer/features/sessions/presentation/new_session_screen.dart';
 import 'package:lap_timer/features/sessions/presentation/session_detail_screen.dart';
 import 'package:lap_timer/features/sessions/presentation/sessions_screen.dart';
@@ -26,6 +27,9 @@ abstract final class AppRoutes {
   /// Track list.
   static const String tracks = '/tracks';
 
+  /// Race rule sets.
+  static const String raceRules = '/race-rules';
+
   /// Session history.
   static const String sessions = '/sessions';
 
@@ -50,6 +54,10 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.newSession,
       builder: (_, _) => const NewSessionScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.raceRules,
+      builder: (_, _) => const RaceRulesScreen(),
     ),
     GoRoute(path: AppRoutes.live, builder: (_, _) => const LiveSessionScreen()),
     GoRoute(

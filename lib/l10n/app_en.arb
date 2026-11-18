@@ -420,5 +420,230 @@
   "mapSaveLine": "Save line",
   "@mapSaveLine": {
     "description": "Save the placed line."
+  },
+  "livePitCount": "Pit {done}/{required}",
+  "@livePitCount": {
+    "description": "Small pit stop counter.",
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "required": {
+        "type": "int"
+      }
+    }
+  },
+  "pitLimit": "limit {limit}",
+  "@pitLimit": {
+    "description": "Pit speed limit under the big speed.",
+    "placeholders": {
+      "limit": {
+        "type": "int"
+      }
+    }
+  },
+  "pitNextDriver": "Next driver",
+  "@pitNextDriver": {
+    "description": "Label above the next driver's name."
+  },
+  "pitSameDriver": "Same driver",
+  "@pitSameDriver": {
+    "description": "Button: keep the current driver."
+  },
+  "pitSameDriverChosen": "Same driver (kept)",
+  "@pitSameDriverChosen": {
+    "description": "Button after choosing same driver."
+  },
+  "pitTime": "Pit time",
+  "@pitTime": {
+    "description": "Label: time since pit entry."
+  },
+  "pitToMinimum": "To minimum {minimum}",
+  "@pitToMinimum": {
+    "description": "Label: time left to the minimum pit time.",
+    "placeholders": {
+      "minimum": {
+        "type": "String"
+      }
+    }
+  },
+  "pitMinimumReached": "OK ✓",
+  "@pitMinimumReached": {
+    "description": "Minimum pit time reached."
+  },
+  "pitProjection": "At exit ≈ {time} · {verdict}",
+  "@pitProjection": {
+    "description": "Projected pit time at the exit line.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "verdict": {
+        "type": "String"
+      }
+    }
+  },
+  "pitOk": "OK",
+  "@pitOk": {
+    "description": "Projection is above the minimum."
+  },
+  "pitSlowDown": "SLOW DOWN",
+  "@pitSlowDown": {
+    "description": "Projection is below the minimum."
+  },
+  "pitStopComplete": "PIT STOP {number} · COMPLETE",
+  "@pitStopComplete": {
+    "description": "Pit result title.",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "pitMinimumOk": "≥ {minimum} minimum",
+  "@pitMinimumOk": {
+    "description": "Minimum pit time respected.",
+    "placeholders": {
+      "minimum": {
+        "type": "String"
+      }
+    }
+  },
+  "pitMinimumMissed": "Under {minimum} minimum",
+  "@pitMinimumMissed": {
+    "description": "Minimum pit time not respected.",
+    "placeholders": {
+      "minimum": {
+        "type": "String"
+      }
+    }
+  },
+  "pitMaxSpeed": "Max {speed} km/h",
+  "@pitMaxSpeed": {
+    "description": "Max speed in the pit lane.",
+    "placeholders": {
+      "speed": {
+        "type": "int"
+      }
+    }
+  },
+  "pitNowDriving": "{label} driving",
+  "@pitNowDriving": {
+    "description": "Who drives after the stop.",
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "actionSave": "Save",
+  "@actionSave": {
+    "description": "Save button."
+  },
+  "newSessionRules": "Race rules",
+  "@newSessionRules": {
+    "description": "Label."
+  },
+  "newSessionNoRules": "No race rules (practice)",
+  "@newSessionNoRules": {
+    "description": "Option: no pit mode."
+  },
+  "newSessionDrivers": "Drivers (in driving order)",
+  "@newSessionDrivers": {
+    "description": "Label."
+  },
+  "newSessionAddDriver": "Add driver",
+  "@newSessionAddDriver": {
+    "description": "Button / dialog title."
+  },
+  "newSessionNoPitLines": "This track has no pit entry/exit lines yet: pit mode will not start. Set them under Tracks.",
+  "@newSessionNoPitLines": {
+    "description": "Warning."
+  },
+  "rulesTitle": "Race rules",
+  "@rulesTitle": {
+    "description": "Screen title."
+  },
+  "rulesNew": "New rule set",
+  "@rulesNew": {
+    "description": "Create a rule set."
+  },
+  "rulesSummary": "Pit ≤ {limit} km/h · min {seconds} s · {stops} stop(s)",
+  "@rulesSummary": {
+    "description": "Rule set summary.",
+    "placeholders": {
+      "limit": {
+        "type": "int"
+      },
+      "seconds": {
+        "type": "int"
+      },
+      "stops": {
+        "type": "int"
+      }
+    }
+  },
+  "rulesDeleteConfirm": "Delete this rule set?",
+  "@rulesDeleteConfirm": {
+    "description": "Confirmation."
+  },
+  "rulesName": "Name",
+  "@rulesName": {
+    "description": "Field label."
+  },
+  "rulesSpeedLimit": "Pit speed limit (km/h)",
+  "@rulesSpeedLimit": {
+    "description": "Field label."
+  },
+  "rulesTargetSpeed": "Target pit speed (km/h)",
+  "@rulesTargetSpeed": {
+    "description": "Field label."
+  },
+  "rulesMinimumPitTime": "Minimum pit time, entry to exit (s)",
+  "@rulesMinimumPitTime": {
+    "description": "Field label."
+  },
+  "rulesSafetyMargin": "Safety margin added to the minimum (s)",
+  "@rulesSafetyMargin": {
+    "description": "Field label."
+  },
+  "rulesResultHold": "Show pit result after exit for (s)",
+  "@rulesResultHold": {
+    "description": "Field label."
+  },
+  "rulesRequiredStops": "Mandatory pit stops",
+  "@rulesRequiredStops": {
+    "description": "Field label."
+  },
+  "rulesResumeSpeed": "Show speed again above (km/h)",
+  "@rulesResumeSpeed": {
+    "description": "Field label."
+  },
+  "sessionDriverColumn": "Driver",
+  "@sessionDriverColumn": {
+    "description": "Table header."
+  },
+  "sessionPitMark": "(pit)",
+  "@sessionPitMark": {
+    "description": "Marks a lap through the pit lane."
+  },
+  "sessionPitStops": "Pit stops",
+  "@sessionPitStops": {
+    "description": "Section title."
+  },
+  "sessionPitStopLine": "Stop {number}: {time} · max {speed} km/h",
+  "@sessionPitStopLine": {
+    "description": "One pit stop.",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "time": {
+        "type": "String"
+      },
+      "speed": {
+        "type": "int"
+      }
+    }
   }
 }

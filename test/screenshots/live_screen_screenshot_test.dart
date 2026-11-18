@@ -9,6 +9,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lap_timer/core/screen_awake_service.dart';
+import 'package:lap_timer/features/race/domain/pit_stop.dart';
+import 'package:lap_timer/features/race/domain/race_rules.dart';
+import 'package:lap_timer/features/race/domain/stint.dart';
 import 'package:lap_timer/features/timing/domain/lap.dart';
 import 'package:lap_timer/features/timing/domain/lap_comparison.dart';
 import 'package:lap_timer/features/timing/presentation/live_session_notifier.dart';
@@ -172,6 +175,83 @@ void main() {
         gpsRateHz: 25,
       ),
       'live_6_sectors',
+    );
+  });
+
+  const rules = RaceRules(id: 'r', name: 'Race');
+  const entry = 1000000000;
+  LiveSessionState pitState({
+    required double speed,
+    required int sinceEntrySeconds,
+    PitView? pit,
+    PitResult? result,
+  }) => LiveSessionState(
+    status: LiveSessionStatus.running,
+    sectorCount: 3,
+    compareMode: SectorCompareMode.bestLap,
+    laps: _laps,
+    lapNumber: 4,
+    currentLapStartMicros: entry - 60000000,
+    lastFixMicros: entry + sinceEntrySeconds * 1000000,
+    lastFixWallMicros: now,
+    speedKmh: speed,
+    gpsRateHz: 10,
+    raceRules: rules,
+    pit: pit,
+    pitResult: result,
+    currentStint: const Stint(driverName: 'Nong', number: 1, startMicros: 0),
+  );
+
+  testWidgets('pit lane moving', (tester) async {
+    await _shot(
+      tester,
+      pitState(
+        speed: 52,
+        sinceEntrySeconds: 43,
+        pit: const PitView(
+          entryMicros: entry,
+          projectedExitPitMicros: 58900000,
+          nextStintLabel: 'Nong(2)',
+        ),
+      ),
+      'pit_moving',
+    );
+  });
+
+  testWidgets('pit lane stopped', (tester) async {
+    await _shot(
+      tester,
+      pitState(
+        speed: 0,
+        sinceEntrySeconds: 31,
+        pit: const PitView(
+          entryMicros: entry,
+          showNextDriver: true,
+          nextStintLabel: 'Nong(2)',
+        ),
+      ),
+      'pit_stopped',
+    );
+  });
+
+  testWidgets('pit exit result', (tester) async {
+    await _shot(
+      tester,
+      pitState(
+        speed: 70,
+        sinceEntrySeconds: 62,
+        result: PitResult(
+          stop: const PitStop(
+            number: 1,
+            entryMicros: entry,
+            exitMicros: entry + 61400000,
+            maxSpeedKmh: 57,
+            stopped: true,
+          ),
+          untilWallMicros: now + 10000000,
+        ),
+      ),
+      'pit_result',
     );
   });
 }

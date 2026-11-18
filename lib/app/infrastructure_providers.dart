@@ -1,5 +1,7 @@
 import 'package:clock/clock.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lap_timer/features/race/data/race_rules_repository.dart';
+import 'package:lap_timer/features/race/domain/race_rules.dart';
 import 'package:lap_timer/features/sessions/data/session_repository.dart';
 import 'package:lap_timer/features/sessions/domain/session.dart';
 import 'package:lap_timer/features/tracks/data/track_repository.dart';
@@ -29,4 +31,16 @@ final StreamProvider<List<Track>> tracksProvider = StreamProvider<List<Track>>(
 final StreamProvider<List<Session>> sessionsProvider =
     StreamProvider<List<Session>>(
       (ref) => ref.watch(sessionRepositoryProvider).watchAll(),
+    );
+
+/// Race rule storage. Overridden in `main.dart`.
+final Provider<RaceRulesRepository> raceRulesRepositoryProvider =
+    Provider<RaceRulesRepository>(
+      (ref) => throw UnimplementedError('Override raceRulesRepositoryProvider'),
+    );
+
+/// All race rule sets, updated live.
+final StreamProvider<List<RaceRules>> raceRulesProvider =
+    StreamProvider<List<RaceRules>>(
+      (ref) => ref.watch(raceRulesRepositoryProvider).watchAll(),
     );

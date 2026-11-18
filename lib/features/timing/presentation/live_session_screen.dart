@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lap_timer/core/screen_awake_service.dart';
 import 'package:lap_timer/features/gps/presentation/gps_failure_message.dart';
+import 'package:lap_timer/features/race/presentation/pit_lane_view.dart';
 import 'package:lap_timer/features/timing/presentation/live_session_notifier.dart';
 import 'package:lap_timer/features/timing/presentation/live_session_state.dart';
 import 'package:lap_timer/features/timing/presentation/live_timing_widgets.dart';
@@ -71,6 +72,10 @@ class _LiveSessionScreenState extends ConsumerState<LiveSessionScreen> {
           padding: const EdgeInsetsDirectional.fromSTEB(20, 6, 20, 12),
           child: switch (state.status) {
             LiveSessionStatus.failed => _FailureView(state: state),
+            _ when state.pit != null || state.pitResult != null => PitLaneView(
+              state: state,
+              onEnd: _end,
+            ),
             _ => _TimingView(state: state, onEnd: _end),
           },
         ),

@@ -1,3 +1,5 @@
+import 'package:lap_timer/features/race/domain/pit_stop.dart';
+import 'package:lap_timer/features/race/domain/stint.dart';
 import 'package:lap_timer/features/timing/domain/lap.dart';
 import 'package:meta/meta.dart';
 
@@ -31,6 +33,9 @@ class Session {
     required this.startedAt,
     required this.laps,
     this.gpsLogFileName,
+    this.raceRulesName,
+    this.stints = const [],
+    this.pitStops = const [],
   });
 
   /// Decodes [toJson] output; returns null when malformed.
@@ -57,6 +62,9 @@ class Session {
     final startedAt = DateTime.tryParse(started);
     if (startedAt == null) return null;
     final log = json['gpsLog'];
+    final rules = json['rules'];
+    final rawStints = json['stints'];
+    final rawStops = json['pitStops'];
     return Session(
       id: id,
       trackId: trackId,
@@ -67,6 +75,15 @@ class Session {
       startedAt: startedAt,
       laps: [for (final raw in rawLaps) ?Lap.tryFromJson(raw)],
       gpsLogFileName: log is String ? log : null,
+      raceRulesName: rules is String ? rules : null,
+      stints: [
+        if (rawStints is List<Object?>)
+          for (final raw in rawStints) ?Stint.tryFromJson(raw),
+      ],
+      pitStops: [
+        if (rawStops is List<Object?>)
+          for (final raw in rawStops) ?PitStop.tryFromJson(raw),
+      ],
     );
   }
 
@@ -97,6 +114,54 @@ class Session {
   /// Raw GPS log recorded during the session, for replay.
   final String? gpsLogFileName;
 
+  /// Name of the race rules used, if any.
+  final String? raceRulesName;
+
+  /// Who drove when.
+  final List<Stint> stints;
+
+  /// Pit lane passes, in order.
+  final List<PitStop> pitStops;
+
+  /// Whether [lap] includes a pass through the pit lane (in-lap/out-lap).
+  /// Such laps are kept but never count as best lap.
+  bool isPitLap(Lap lap) => lapIncludesPitStop(lap, pitStops);
+
+  /// Laps without a pit stop, used for best lap / best sectors.
+  List<Lap> get racingLaps => [
+    for (final lap in laps)
+      if (!isPitLap(lap)) lap,
+  ];
+
+  /// The stint [lap] belongs to (by its start time), if stints are known.
+  Stint? stintOf(Lap lap) {
+    Stint? result;
+    for (final s in stints) {
+      if (s.startMicros <= lap.startMicros) result = s;
+    }
+    return result ?? (stints.isEmpty ? null : stints.first);
+  }
+
+  /// Returns a copy with the timing data replaced.
+  Session withProgress({
+    required List<Lap> laps,
+    required List<Stint> stints,
+    required List<PitStop> pitStops,
+  }) => Session(
+    id: id,
+    trackId: trackId,
+    trackName: trackName,
+    sectorLayoutName: sectorLayoutName,
+    sectorCount: sectorCount,
+    vehicleType: vehicleType,
+    startedAt: startedAt,
+    laps: laps,
+    gpsLogFileName: gpsLogFileName,
+    raceRulesName: raceRulesName,
+    stints: stints,
+    pitStops: pitStops,
+  );
+
   /// Returns a copy with [laps] replaced.
   Session withLaps(List<Lap> laps) => Session(
     id: id,
@@ -108,6 +173,9 @@ class Session {
     startedAt: startedAt,
     laps: laps,
     gpsLogFileName: gpsLogFileName,
+    raceRulesName: raceRulesName,
+    stints: stints,
+    pitStops: pitStops,
   );
 
   /// JSON for storage.
@@ -121,5 +189,13 @@ class Session {
     'startedAt': startedAt.toIso8601String(),
     'laps': [for (final lap in laps) lap.toJson()],
     'gpsLog': ?gpsLogFileName,
+    'rules': ?raceRulesName,
+    'stints': [for (final st in stints) st.toJson()],
+    'pitStops': [for (final p in pitStops) p.toJson()],
   };
 }
+
+/// Whether [lap] overlaps any of [pitStops] in time.
+bool lapIncludesPitStop(Lap lap, List<PitStop> pitStops) => pitStops.any(
+  (p) => lap.startMicros < p.exitMicros && lap.endMicros > p.entryMicros,
+);

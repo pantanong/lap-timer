@@ -37,7 +37,11 @@ void main() {
         ),
         // 3 simulated laps played 200x faster than real time.
         gpsSourceProvider.overrideWithValue(
-          SimulatedGpsSource(laps: 3, playbackSpeed: 200),
+          SimulatedGpsSource(
+            laps: 3,
+            playbackSpeed: 200,
+            pitStopAtCrossings: const {},
+          ),
         ),
       ],
     );

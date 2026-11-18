@@ -46,6 +46,11 @@ class HomeScreen extends ConsumerWidget {
             route: AppRoutes.tracks,
           ),
           _NavButton(
+            icon: Icons.rule,
+            label: l10n.rulesTitle,
+            route: AppRoutes.raceRules,
+          ),
+          _NavButton(
             icon: Icons.history,
             label: l10n.historyTitle,
             route: AppRoutes.sessions,
