@@ -9,6 +9,7 @@ analyzer:
     - build/**
     - "**/*.g.dart"
     - lib/l10n/generated/**
+    - third_party/**
     - android/**
     - ios/**
   errors:
