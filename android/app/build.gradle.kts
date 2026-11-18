@@ -29,11 +29,25 @@ android {
         versionName = flutter.versionName
     }
 
+    // Every build is signed with the same committed key, so a new APK can be
+    // installed over the previous one without losing data. This key is only
+    // for test builds installed by hand: see SIGNING.md before any store
+    // release.
+    signingConfigs {
+        create("sideload") {
+            storeFile = file("sideload-release.jks")
+            storePassword = "laptimer-sideload"
+            keyAlias = "lap-timer"
+            keyPassword = "laptimer-sideload"
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("sideload")
+        }
+        debug {
+            signingConfig = signingConfigs.getByName("sideload")
         }
     }
 }

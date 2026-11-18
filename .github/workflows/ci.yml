@@ -1,9 +1,13 @@
-# Checks every push, then builds an installable Android APK.
-# Download the APK from the run's "Artifacts" section on GitHub.
+# Checks every push, builds an installable Android APK and publishes it on
+# the repository's Releases page:
+#   - main      -> a normal release ("latest"), stable download link:
+#                  https://github.com/pantanong/lap-timer/releases/latest/download/lap-timer.apk
+#   - branches  -> a pre-release, for trying a change before it is merged.
 name: CI
 
 on:
   push:
+    branches: ["**"]
   pull_request:
   workflow_dispatch:
 
@@ -15,6 +19,8 @@ jobs:
   check-and-build:
     runs-on: ubuntu-24.04
     timeout-minutes: 40
+    permissions:
+      contents: write # create releases
     steps:
       - uses: actions/checkout@v4
 
@@ -44,12 +50,32 @@ jobs:
       - name: Unit tests
         run: flutter test --exclude-tags screenshot
 
+      # The run number is the Android version code, so each build is newer
+      # than the last and installs as an update.
       - name: Build APK
-        run: flutter build apk --release
+        run: |
+          flutter build apk --release --build-number=${{ github.run_number }}
+          cp build/app/outputs/flutter-apk/app-release.apk lap-timer.apk
 
-      - name: Upload APK
+      - name: Upload APK (artifact)
         uses: actions/upload-artifact@v4
         with:
           name: lap-timer-apk-${{ github.run_number }}
-          path: build/app/outputs/flutter-apk/app-release.apk
+          path: lap-timer.apk
           retention-days: 30
+
+      - name: Publish release
+        if: github.event_name == 'push'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ github.run_number }}
+          target_commitish: ${{ github.sha }}
+          name: >-
+            ${{ github.ref_name == 'main' && 'Lap Timer' || 'Preview' }}
+            build ${{ github.run_number }} (${{ github.ref_name }})
+          body: |
+            Built from `${{ github.ref_name }}` at ${{ github.sha }}.
+            Install: download `lap-timer.apk` below on the phone and open it.
+          prerelease: ${{ github.ref_name != 'main' }}
+          make_latest: ${{ github.ref_name == 'main' && 'true' || 'false' }}
+          files: lap-timer.apk

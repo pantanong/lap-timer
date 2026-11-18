@@ -6,12 +6,15 @@ pit lane mode and a brake point coach. Flutter app for Android and iOS.
 - Product spec: [`docs/SPEC.md`](docs/SPEC.md)
 - UI mockups: [`docs/mockups/`](docs/mockups)
 
-## Install the latest build (Android)
+## Install on Android
 
-1. Open the repository's **Actions** tab on GitHub and pick the newest green
-   **CI** run.
-2. Download the `lap-timer-apk-…` artifact (a zip) and unzip it.
-3. Open `app-release.apk` on the phone and allow installing from this source.
+Open on the phone and install:
+**https://github.com/pantanong/lap-timer/releases/latest/download/lap-timer.apk**
+
+- That link is always the newest build of `main`.
+- Builds of other branches (to try a change before merging) are listed as
+  *Pre-release* on https://github.com/pantanong/lap-timer/releases
+- New builds install over the old one; tracks and sessions are kept.
 
 ## Code layout
 

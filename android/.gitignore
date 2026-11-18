@@ -12,3 +12,5 @@ GeneratedPluginRegistrant.java
 key.properties
 **/*.keystore
 **/*.jks
+# Test-build signing key, committed on purpose (see android/app/SIGNING.md).
+!app/sideload-release.jks
