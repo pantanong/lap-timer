@@ -2,7 +2,11 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lap_timer/app/infrastructure_providers.dart';
+import 'package:lap_timer/core/geo/local_point.dart';
 import 'package:lap_timer/core/result.dart';
+import 'package:lap_timer/features/brake_coach/domain/brake_alert.dart';
+import 'package:lap_timer/features/brake_coach/domain/brake_coach.dart';
+import 'package:lap_timer/features/brake_coach/domain/brake_profile.dart';
 import 'package:lap_timer/features/gps/data/gps_log_repository.dart';
 import 'package:lap_timer/features/gps/domain/gps_fix.dart';
 import 'package:lap_timer/features/gps/domain/gps_rate_meter.dart';
@@ -50,6 +54,7 @@ class LiveSessionNotifier extends Notifier<LiveSessionState> {
   LapTimingEngine? _engine;
   Session? _session;
   PitLaneTracker? _pitTracker;
+  BrakeCoach? _brakeCoach;
   StintPlan _stints = StintPlan.start(const []);
   final GpsRateMeter _rateMeter = GpsRateMeter();
 
@@ -71,8 +76,20 @@ class LiveSessionNotifier extends Notifier<LiveSessionState> {
       compareMode: config?.compareMode ?? SectorCompareMode.bestLap,
       raceRules: config?.raceRules,
       currentStint: _stints.current,
+      brakeCoachPhase: _brakeCoachEnabled(config)
+          ? (config?.brakeProfile == null
+                ? BrakeCoachPhase.learning
+                : BrakeCoachPhase.active)
+          : null,
+      brakeLearningLapsNeeded: config?.brakeCoach?.learningLaps ?? 0,
     );
   }
+
+  /// The brake coach never runs for bicycles.
+  static bool _brakeCoachEnabled(LiveSessionConfig? config) =>
+      config != null &&
+      config.brakeCoach != null &&
+      config.vehicleType != VehicleType.bicycle;
 
   /// Opens the GPS source and starts timing with the pending config.
   Future<void> start() async {
@@ -92,6 +109,17 @@ class LiveSessionNotifier extends Notifier<LiveSessionState> {
       return;
     }
 
+    final coachSettings = config.brakeCoach;
+    if (coachSettings != null && _brakeCoachEnabled(config)) {
+      _brakeCoach = BrakeCoach(
+        settings: coachSettings,
+        projection: LocalProjection(
+          originLatitude: startFinish.latitude,
+          originLongitude: startFinish.longitude,
+        ),
+        startingProfile: config.brakeProfile,
+      );
+    }
     _engine = LapTimingEngine(
       startFinish: startFinish,
       splits: config.sectorLayout?.splits ?? const [],
@@ -169,10 +197,19 @@ class LiveSessionNotifier extends Notifier<LiveSessionState> {
       if (event is LapCompleted) {
         flash = _flashFor(event.lap, laps, wallNow);
         laps = [...laps, event.lap];
+        _brakeCoach?.completeLap(
+          lapNumber: event.lap.number,
+          lapTimeMicros: event.lap.timeMicros,
+          isRacingLap:
+              state.pit == null &&
+              !lapIncludesPitStop(event.lap, state.pitStops),
+        );
       }
+      if (event is LapStarted) _brakeCoach?.startLap();
     }
     final flashExpired = flash != null && wallNow > flash.untilWallMicros;
     _onPitFix(fix, wallNow);
+    _onBrakeCoachFix(fix);
     state = state.copyWith(
       laps: laps,
       lapNumber: engine.currentLapNumber,
@@ -189,6 +226,22 @@ class LiveSessionNotifier extends Notifier<LiveSessionState> {
     );
     if (events.any((e) => e is LapCompleted)) unawaited(_saveSession());
   }
+
+  /// Feeds the brake coach; no alerts in the pit lane.
+  void _onBrakeCoachFix(GpsFix fix) {
+    final coach = _brakeCoach;
+    if (coach == null) return;
+    final alert = coach.addFix(fix);
+    state = state.copyWith(
+      brakeAlert: state.pit == null ? alert : BrakeAlert.none,
+      brakeCoachPhase: coach.phase,
+      brakeLearningLaps: coach.learnedLapCount,
+    );
+  }
+
+  /// Corner edits made on the Corners screen during a session.
+  void updateBrakeCorners(List<CornerBrakePoint> corners) =>
+      _brakeCoach?.replaceCorners(corners);
 
   /// Feeds the pit lane tracker and updates pit view, stints and stops.
   void _onPitFix(GpsFix fix, int wallNow) {
@@ -276,6 +329,26 @@ class LiveSessionNotifier extends Notifier<LiveSessionState> {
     );
   }
 
+  /// The brake points as they stand, ready to be reviewed and saved as a
+  /// profile from the Corners screen.
+  BrakeProfile? _brakeProfileDraft(Session session) {
+    final coach = _brakeCoach;
+    final path = coach?.pathLatLng;
+    if (coach == null || path == null) return null;
+    final starting = ref.read(pendingSessionConfigProvider)?.brakeProfile;
+    final date = session.startedAt.toLocal().toIso8601String().split('T').first;
+    return BrakeProfile(
+      id: starting?.id ?? 'brake-${session.id}',
+      name:
+          starting?.name ??
+          '${session.trackName} – ${session.vehicleType.name} – $date',
+      trackId: session.trackId,
+      vehicleType: session.vehicleType,
+      pathLatLng: path,
+      corners: coach.corners,
+    );
+  }
+
   Future<void> _saveSession() async {
     final session = _session;
     if (session == null) return;
@@ -283,6 +356,8 @@ class LiveSessionNotifier extends Notifier<LiveSessionState> {
       laps: state.laps,
       stints: _stints.stints,
       pitStops: state.pitStops,
+      brakeProfile: _brakeProfileDraft(session),
+      brakeMisses: _brakeCoach?.misses,
     );
     _session = updated;
     await ref.read(sessionRepositoryProvider).save(updated);

@@ -1,3 +1,6 @@
+import 'package:lap_timer/features/brake_coach/domain/brake_alert.dart';
+import 'package:lap_timer/features/brake_coach/domain/brake_coach.dart';
+import 'package:lap_timer/features/brake_coach/domain/brake_profile.dart';
 import 'package:lap_timer/features/gps/data/gps_source.dart';
 import 'package:lap_timer/features/race/domain/pit_stop.dart';
 import 'package:lap_timer/features/race/domain/race_rules.dart';
@@ -19,6 +22,8 @@ class LiveSessionConfig {
     this.compareMode = SectorCompareMode.bestLap,
     this.raceRules,
     this.drivers = const [],
+    this.brakeCoach,
+    this.brakeProfile,
   });
 
   /// Track to time on (must have a start/finish line).
@@ -38,6 +43,12 @@ class LiveSessionConfig {
 
   /// Drivers in driving order; empty = one unnamed driver.
   final List<String> drivers;
+
+  /// Brake coach options; null = brake coach off.
+  final BrakeCoachSettings? brakeCoach;
+
+  /// Saved brake profile to start from (skips the learning laps).
+  final BrakeProfile? brakeProfile;
 }
 
 /// What the pit lane screen shows.
@@ -169,6 +180,10 @@ class LiveSessionState {
     this.pitResult,
     this.pitStops = const [],
     this.currentStint,
+    this.brakeAlert = BrakeAlert.none,
+    this.brakeCoachPhase,
+    this.brakeLearningLaps = 0,
+    this.brakeLearningLapsNeeded = 0,
   });
 
   /// Lifecycle step.
@@ -233,6 +248,18 @@ class LiveSessionState {
   /// Who is driving now, e.g. Nong(1).
   final Stint? currentStint;
 
+  /// Yellow / red brake alert to show now.
+  final BrakeAlert brakeAlert;
+
+  /// Learning or active; null when the brake coach is off.
+  final BrakeCoachPhase? brakeCoachPhase;
+
+  /// Learning laps recorded so far.
+  final int brakeLearningLaps;
+
+  /// Learning laps needed before alerts start.
+  final int brakeLearningLapsNeeded;
+
   /// Laps without a pit stop: the only ones that count for best times.
   List<Lap> get racingLaps => [
     for (final lap in laps)
@@ -277,6 +304,9 @@ class LiveSessionState {
     bool clearPitResult = false,
     List<PitStop>? pitStops,
     Stint? currentStint,
+    BrakeAlert? brakeAlert,
+    BrakeCoachPhase? brakeCoachPhase,
+    int? brakeLearningLaps,
   }) => LiveSessionState(
     status: status ?? this.status,
     failure: failure ?? this.failure,
@@ -299,5 +329,9 @@ class LiveSessionState {
     pitResult: clearPitResult ? null : (pitResult ?? this.pitResult),
     pitStops: pitStops ?? this.pitStops,
     currentStint: currentStint ?? this.currentStint,
+    brakeAlert: brakeAlert ?? this.brakeAlert,
+    brakeCoachPhase: brakeCoachPhase ?? this.brakeCoachPhase,
+    brakeLearningLaps: brakeLearningLaps ?? this.brakeLearningLaps,
+    brakeLearningLapsNeeded: brakeLearningLapsNeeded,
   );
 }

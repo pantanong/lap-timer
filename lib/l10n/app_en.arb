@@ -645,5 +645,194 @@
         "type": "int"
       }
     }
+  },
+  "brakeCorner": "TURN {number}",
+  "@brakeCorner": {
+    "description": "Corner label on the brake alert.",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "brakeGetReady": "GET READY",
+  "@brakeGetReady": {
+    "description": "Yellow alert: brake point ahead."
+  },
+  "brakeNow": "BRAKE",
+  "@brakeNow": {
+    "description": "Red alert: brake now."
+  },
+  "brakeLearning": "Learning brakes {done}/{needed}",
+  "@brakeLearning": {
+    "description": "Status while the brake coach learns.",
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "needed": {
+        "type": "int"
+      }
+    }
+  },
+  "brakeCoachTitle": "Brake point coach",
+  "@brakeCoachTitle": {
+    "description": "Section title."
+  },
+  "brakeCoachEnable": "Show yellow/red brake alerts",
+  "@brakeCoachEnable": {
+    "description": "Switch label."
+  },
+  "brakeCoachSource": "Brake points",
+  "@brakeCoachSource": {
+    "description": "Label."
+  },
+  "brakeCoachLearnNew": "Learn from this session",
+  "@brakeCoachLearnNew": {
+    "description": "Option: learn brake points during the session."
+  },
+  "brakeCoachLearningLaps": "Learning laps: {count}",
+  "@brakeCoachLearningLaps": {
+    "description": "Stepper label.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "brakeCoachMethod": "Method",
+  "@brakeCoachMethod": {
+    "description": "Label."
+  },
+  "brakeMethodFastest": "Fastest lap",
+  "@brakeMethodFastest": {
+    "description": "Method 1."
+  },
+  "brakeMethodDeepest": "Deepest valid",
+  "@brakeMethodDeepest": {
+    "description": "Method 2 (conditional)."
+  },
+  "brakeCoachLeadTime": "Red appears {seconds} s before the brake point",
+  "@brakeCoachLeadTime": {
+    "description": "Slider label.",
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "brakeCoachPhoneGpsWarning": "With phone GPS the brake points are approximate. A 10 Hz receiver is much more precise.",
+  "@brakeCoachPhoneGpsWarning": {
+    "description": "Warning."
+  },
+  "cornersTitle": "Brake points",
+  "@cornersTitle": {
+    "description": "Corners screen title."
+  },
+  "cornersNone": "No brake points in this session. Turn on the brake coach and drive the learning laps.",
+  "@cornersNone": {
+    "description": "Empty state."
+  },
+  "cornersSaveProfile": "Save profile",
+  "@cornersSaveProfile": {
+    "description": "Save the brake points as a named profile."
+  },
+  "cornersSaved": "Saved “{name}”",
+  "@cornersSaved": {
+    "description": "Confirmation.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "cornersTurn": "Turn {number}",
+  "@cornersTurn": {
+    "description": "Corner title.",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "cornersInfo": "Brake point at {metres} m · from lap {lap}",
+  "@cornersInfo": {
+    "description": "Corner details.",
+    "placeholders": {
+      "metres": {
+        "type": "int"
+      },
+      "lap": {
+        "type": "int"
+      }
+    }
+  },
+  "cornersLock": "Lock (learning will not change it)",
+  "@cornersLock": {
+    "description": "Tooltip."
+  },
+  "cornersUnlock": "Unlock",
+  "@cornersUnlock": {
+    "description": "Tooltip."
+  },
+  "cornersEarlier": "5 m earlier",
+  "@cornersEarlier": {
+    "description": "Button."
+  },
+  "cornersLater": "5 m later",
+  "@cornersLater": {
+    "description": "Button."
+  },
+  "cornersReset": "Reset alert",
+  "@cornersReset": {
+    "description": "Button: offset back to 0."
+  },
+  "cornersSuggestLate": "You braked about {metres} m after the brake point in {agreeing} of {observed} laps. Warn {change} m earlier?",
+  "@cornersSuggestLate": {
+    "description": "Calibration suggestion.",
+    "placeholders": {
+      "metres": {
+        "type": "int"
+      },
+      "agreeing": {
+        "type": "int"
+      },
+      "observed": {
+        "type": "int"
+      },
+      "change": {
+        "type": "int"
+      }
+    }
+  },
+  "cornersSuggestEarly": "You braked about {metres} m before the brake point in {agreeing} of {observed} laps. Warn {change} m later?",
+  "@cornersSuggestEarly": {
+    "description": "Calibration suggestion.",
+    "placeholders": {
+      "metres": {
+        "type": "int"
+      },
+      "agreeing": {
+        "type": "int"
+      },
+      "observed": {
+        "type": "int"
+      },
+      "change": {
+        "type": "int"
+      }
+    }
+  },
+  "cornersApply": "Apply",
+  "@cornersApply": {
+    "description": "Accept a suggestion."
+  },
+  "cornersDismiss": "Dismiss",
+  "@cornersDismiss": {
+    "description": "Ignore a suggestion."
+  },
+  "sessionBrakePoints": "Brake points",
+  "@sessionBrakePoints": {
+    "description": "Button on the session summary."
   }
 }

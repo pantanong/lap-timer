@@ -1,3 +1,4 @@
+import 'package:lap_timer/features/brake_coach/domain/brake_profile.dart';
 import 'package:lap_timer/features/race/domain/pit_stop.dart';
 import 'package:lap_timer/features/race/domain/stint.dart';
 import 'package:lap_timer/features/timing/domain/lap.dart';
@@ -36,6 +37,8 @@ class Session {
     this.raceRulesName,
     this.stints = const [],
     this.pitStops = const [],
+    this.brakeProfile,
+    this.brakeMisses = const {},
   });
 
   /// Decodes [toJson] output; returns null when malformed.
@@ -65,6 +68,7 @@ class Session {
     final rules = json['rules'];
     final rawStints = json['stints'];
     final rawStops = json['pitStops'];
+    final rawMisses = json['brakeMisses'];
     return Session(
       id: id,
       trackId: trackId,
@@ -84,6 +88,8 @@ class Session {
         if (rawStops is List<Object?>)
           for (final raw in rawStops) ?PitStop.tryFromJson(raw),
       ],
+      brakeProfile: BrakeProfile.tryFromJson(json['brakeProfile']),
+      brakeMisses: _decodeMisses(rawMisses),
     );
   }
 
@@ -123,6 +129,15 @@ class Session {
   /// Pit lane passes, in order.
   final List<PitStop> pitStops;
 
+  /// Brake points at the end of the session (learned or from a saved
+  /// profile, with any edits), for the Corners screen. Null if the brake
+  /// coach was off or never finished learning.
+  final BrakeProfile? brakeProfile;
+
+  /// How far off each corner's brake point the driver braked, per lap
+  /// (metres, positive = later), for calibration suggestions.
+  final Map<int, List<double>> brakeMisses;
+
   /// Whether [lap] includes a pass through the pit lane (in-lap/out-lap).
   /// Such laps are kept but never count as best lap.
   bool isPitLap(Lap lap) => lapIncludesPitStop(lap, pitStops);
@@ -147,6 +162,8 @@ class Session {
     required List<Lap> laps,
     required List<Stint> stints,
     required List<PitStop> pitStops,
+    BrakeProfile? brakeProfile,
+    Map<int, List<double>>? brakeMisses,
   }) => Session(
     id: id,
     trackId: trackId,
@@ -160,6 +177,16 @@ class Session {
     raceRulesName: raceRulesName,
     stints: stints,
     pitStops: pitStops,
+    brakeProfile: brakeProfile ?? this.brakeProfile,
+    brakeMisses: brakeMisses ?? this.brakeMisses,
+  );
+
+  /// Returns a copy with the brake profile replaced (Corners screen edits).
+  Session withBrakeProfile(BrakeProfile profile) => withProgress(
+    laps: laps,
+    stints: stints,
+    pitStops: pitStops,
+    brakeProfile: profile,
   );
 
   /// Returns a copy with [laps] replaced.
@@ -176,6 +203,8 @@ class Session {
     raceRulesName: raceRulesName,
     stints: stints,
     pitStops: pitStops,
+    brakeProfile: brakeProfile,
+    brakeMisses: brakeMisses,
   );
 
   /// JSON for storage.
@@ -192,7 +221,23 @@ class Session {
     'rules': ?raceRulesName,
     'stints': [for (final st in stints) st.toJson()],
     'pitStops': [for (final p in pitStops) p.toJson()],
+    if (brakeProfile case final profile?) 'brakeProfile': profile.toJson(),
+    'brakeMisses': {for (final e in brakeMisses.entries) '${e.key}': e.value},
   };
+
+  static Map<int, List<double>> _decodeMisses(Object? json) {
+    if (json is! Map<String, Object?>) return const {};
+    final result = <int, List<double>>{};
+    for (final MapEntry(:key, :value) in json.entries) {
+      final corner = int.tryParse(key);
+      if (corner == null || value is! List<Object?>) continue;
+      result[corner] = [
+        for (final v in value)
+          if (v is num) v.toDouble(),
+      ];
+    }
+    return result;
+  }
 }
 
 /// Whether [lap] overlaps any of [pitStops] in time.

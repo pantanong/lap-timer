@@ -9,6 +9,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lap_timer/core/screen_awake_service.dart';
+import 'package:lap_timer/features/brake_coach/domain/brake_alert.dart';
+import 'package:lap_timer/features/brake_coach/domain/brake_coach.dart';
 import 'package:lap_timer/features/race/domain/pit_stop.dart';
 import 'package:lap_timer/features/race/domain/race_rules.dart';
 import 'package:lap_timer/features/race/domain/stint.dart';
@@ -252,6 +254,45 @@ void main() {
         ),
       ),
       'pit_result',
+    );
+  });
+
+  LiveSessionState alertState(BrakeAlert alert) => LiveSessionState(
+    status: LiveSessionStatus.running,
+    sectorCount: 3,
+    compareMode: SectorCompareMode.bestLap,
+    laps: _laps,
+    lapNumber: 5,
+    currentLapStartMicros: 455180000,
+    lastFixMicros: 455180000 + 30000000,
+    lastFixWallMicros: now,
+    speedKmh: 168,
+    gpsRateHz: 10,
+    brakeAlert: alert,
+    brakeCoachPhase: BrakeCoachPhase.active,
+  );
+
+  testWidgets('brake alert yellow', (tester) async {
+    await _shot(
+      tester,
+      alertState(
+        const BrakeAlert(
+          phase: BrakeAlertPhase.approaching,
+          cornerIndex: 2,
+          metresToBrakePoint: 72,
+        ),
+      ),
+      'brake_yellow',
+    );
+  });
+
+  testWidgets('brake alert red', (tester) async {
+    await _shot(
+      tester,
+      alertState(
+        const BrakeAlert(phase: BrakeAlertPhase.brakeNow, cornerIndex: 2),
+      ),
+      'brake_red',
     );
   });
 }

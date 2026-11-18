@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lap_timer/app/infrastructure_providers.dart';
+import 'package:lap_timer/features/brake_coach/domain/brake_coach.dart';
 import 'package:lap_timer/features/timing/domain/lap_comparison.dart';
 import 'package:lap_timer/features/timing/presentation/live_session_notifier.dart';
 import 'package:lap_timer/features/timing/presentation/live_session_state.dart';
@@ -100,6 +101,17 @@ class LiveStatusBar extends StatelessWidget {
           style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
         ),
         const Spacer(),
+        if (state.brakeCoachPhase == BrakeCoachPhase.learning)
+          Padding(
+            padding: const EdgeInsetsDirectional.only(end: 12),
+            child: Text(
+              l10n.brakeLearning(
+                state.brakeLearningLaps,
+                state.brakeLearningLapsNeeded,
+              ),
+              style: TextStyle(color: colors.warning, fontSize: 13),
+            ),
+          ),
         if (state.raceRules case final rules?)
           Padding(
             padding: const EdgeInsetsDirectional.only(end: 12),

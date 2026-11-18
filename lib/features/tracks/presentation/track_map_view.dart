@@ -31,6 +31,8 @@ class TrackMapView extends StatelessWidget {
     this.imagery = MapImagery.satellite,
     this.onTap,
     this.interactive = true,
+    this.pointMarkers = const [],
+    this.pathLatLng = const [],
     super.key,
   });
 
@@ -57,6 +59,13 @@ class TrackMapView extends StatelessWidget {
 
   /// Whether the map can be panned and zoomed.
   final bool interactive;
+
+  /// Labelled points, e.g. brake points: (latitude, longitude, label,
+  /// highlighted).
+  final List<(double, double, String, bool)> pointMarkers;
+
+  /// A driven line to draw, e.g. the brake coach reference lap.
+  final List<(double, double)> pathLatLng;
 
   /// Package name sent to tile servers, as their usage policies require.
   static const String userAgentPackageName = 'com.pantanong.lap_timer';
@@ -98,6 +107,12 @@ class TrackMapView extends StatelessWidget {
         _tileLayer(),
         PolylineLayer(
           polylines: [
+            if (pathLatLng.length >= 2)
+              Polyline(
+                points: [for (final (lat, lon) in pathLatLng) LatLng(lat, lon)],
+                color: Colors.white.withValues(alpha: 0.5),
+                strokeWidth: 2,
+              ),
             for (final (line, color, _) in lines)
               if (_toPolyline(line) case final points?)
                 Polyline(points: points, color: color, strokeWidth: 5),
@@ -113,6 +128,14 @@ class TrackMapView extends StatelessWidget {
                   radius: 6,
                   color: color,
                 ),
+            for (final (lat, lon, _, highlighted) in pointMarkers)
+              CircleMarker(
+                point: LatLng(lat, lon),
+                radius: highlighted ? 10 : 7,
+                color: highlighted ? colors.warning : colors.slower,
+                borderColor: Colors.white,
+                borderStrokeWidth: highlighted ? 3 : 1,
+              ),
             for (final p in pendingPoints)
               CircleMarker(point: p, radius: 7, color: colors.slower),
             if (liveFix case final fix?)
@@ -127,6 +150,22 @@ class TrackMapView extends StatelessWidget {
         ),
         MarkerLayer(
           markers: [
+            for (final (lat, lon, label, _) in pointMarkers)
+              Marker(
+                point: LatLng(lat, lon),
+                width: 40,
+                height: 40,
+                alignment: Alignment.bottomCenter,
+                child: Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                    shadows: [Shadow(blurRadius: 3)],
+                  ),
+                ),
+              ),
             for (final (line, color, label) in lines)
               Marker(
                 point: LatLng(line.latitude, line.longitude),
