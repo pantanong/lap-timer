@@ -32,7 +32,9 @@ dependencies:
   cupertino_icons: ^1.0.8
   flutter:
     sdk: flutter
-  flutter_blue_plus: ^1.34.5
+  # Pinned to 1.34.x: BSD licence. 2.x requires a paid licence for
+  # commercial use.
+  flutter_blue_plus: ">=1.34.5 <1.35.0"
   flutter_localizations:
     sdk: flutter
   flutter_map: ^8.3.2
