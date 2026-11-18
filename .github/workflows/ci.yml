@@ -50,6 +50,25 @@ jobs:
       - name: Unit tests
         run: flutter test --exclude-tags screenshot
 
+      # Gradle resolves Flutter's build plugins through the Gradle Plugin
+      # Portal, which redirects to Maven Central; that redirect has failed
+      # on CI. Let every build (including Flutter's included ':gradle'
+      # build) use Maven Central directly first.
+      - name: Gradle repositories
+        run: |
+          mkdir -p ~/.gradle/init.d
+          cat > ~/.gradle/init.d/maven-central.gradle <<'GRADLE'
+          beforeSettings { settings ->
+              settings.pluginManagement.repositories {
+                  mavenCentral()
+                  gradlePluginPortal()
+              }
+          }
+          allprojects {
+              buildscript { repositories { mavenCentral() } }
+          }
+          GRADLE
+
       # The run number is the Android version code, so each build is newer
       # than the last and installs as an update.
       - name: Build APK
