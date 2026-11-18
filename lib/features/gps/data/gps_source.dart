@@ -30,6 +30,19 @@ enum GpsFailureKind {
 
   /// The replay log is missing or unreadable.
   logUnavailable,
+
+  /// The phone has no Bluetooth Low Energy.
+  bluetoothUnavailable,
+
+  /// Bluetooth is switched off.
+  bluetoothOff,
+
+  /// No external receiver was found nearby (off, or connected to another
+  /// phone or app).
+  deviceNotFound,
+
+  /// The receiver was found but the connection failed.
+  connectionFailed,
 }
 
 /// A failure from a [GpsSource].

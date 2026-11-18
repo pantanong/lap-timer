@@ -834,5 +834,25 @@
   "sessionBrakePoints": "Brake points",
   "@sessionBrakePoints": {
     "description": "Button on the session summary."
+  },
+  "gpsSourceDragy": "Dragy",
+  "@gpsSourceDragy": {
+    "description": "Option: external Dragy Pro over Bluetooth."
+  },
+  "errorBluetoothUnavailable": "This phone has no Bluetooth Low Energy.",
+  "@errorBluetoothUnavailable": {
+    "description": "Failure."
+  },
+  "errorBluetoothOff": "Bluetooth is off. Turn it on and try again.",
+  "@errorBluetoothOff": {
+    "description": "Failure."
+  },
+  "errorDragyNotFound": "No Dragy found. Switch it on, close the Dragy app, and keep it near the phone.",
+  "@errorDragyNotFound": {
+    "description": "Failure."
+  },
+  "errorDragyConnection": "Could not connect to the Dragy. Switch it off and on, then try again.",
+  "@errorDragyConnection": {
+    "description": "Failure."
   }
 }

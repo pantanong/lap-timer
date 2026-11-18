@@ -6,6 +6,8 @@
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>Lap Timer connects to an external GPS receiver (Dragy) over Bluetooth.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Lap Timer uses your location to time laps and sectors.</string>
 	<key>CFBundleDisplayName</key>

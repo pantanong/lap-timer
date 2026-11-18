@@ -87,7 +87,7 @@ class _SectionTitle extends StatelessWidget {
   );
 }
 
-enum _SourceKind { phone, simulator, replay }
+enum _SourceKind { phone, dragy, simulator, replay }
 
 class _SourcePicker extends ConsumerWidget {
   const _SourcePicker();
@@ -98,6 +98,7 @@ class _SourcePicker extends ConsumerWidget {
     final choice = ref.watch(gpsSourceChoiceProvider);
     final selected = switch (choice) {
       PhoneGpsChoice() => _SourceKind.phone,
+      DragyGpsChoice() => _SourceKind.dragy,
       SimulatorGpsChoice() => _SourceKind.simulator,
       ReplayGpsChoice() => _SourceKind.replay,
     };
@@ -106,6 +107,10 @@ class _SourcePicker extends ConsumerWidget {
         ButtonSegment(
           value: _SourceKind.phone,
           label: Text(l10n.gpsSourcePhone),
+        ),
+        ButtonSegment(
+          value: _SourceKind.dragy,
+          label: Text(l10n.gpsSourceDragy),
         ),
         ButtonSegment(
           value: _SourceKind.simulator,
@@ -122,6 +127,7 @@ class _SourcePicker extends ConsumerWidget {
             .read(gpsSourceChoiceProvider.notifier)
             .choice = switch (kinds.single) {
           _SourceKind.phone => const PhoneGpsChoice(),
+          _SourceKind.dragy => const DragyGpsChoice(),
           _SourceKind.simulator => const SimulatorGpsChoice(),
           _SourceKind.replay => const ReplayGpsChoice(),
         };

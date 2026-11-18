@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lap_timer/features/gps/data/dragy_gps_source.dart';
 import 'package:lap_timer/features/gps/data/gps_log_repository.dart';
 import 'package:lap_timer/features/gps/data/gps_source.dart';
 import 'package:lap_timer/features/gps/data/phone_gps_source.dart';
@@ -20,6 +21,12 @@ sealed class GpsSourceChoice {
 final class PhoneGpsChoice extends GpsSourceChoice {
   /// Creates the choice.
   const PhoneGpsChoice();
+}
+
+/// Use an external Dragy Pro over Bluetooth.
+final class DragyGpsChoice extends GpsSourceChoice {
+  /// Creates the choice.
+  const DragyGpsChoice();
 }
 
 /// Use the virtual car on the virtual track.
@@ -61,6 +68,7 @@ final gpsSourceProvider = Provider<GpsSource?>((ref) {
   final choice = ref.watch(gpsSourceChoiceProvider);
   return switch (choice) {
     PhoneGpsChoice() => const PhoneGpsSource(),
+    DragyGpsChoice() => DragyGpsSource(),
     SimulatorGpsChoice() => SimulatedGpsSource(),
     ReplayGpsChoice(:final log?) => ReplayGpsSource(
       log: log,

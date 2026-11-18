@@ -9,4 +9,8 @@ String gpsFailureMessage(AppLocalizations l10n, GpsFailure failure) =>
       GpsFailureKind.permissionDeniedForever =>
         l10n.errorGpsPermissionDeniedForever,
       GpsFailureKind.logUnavailable => l10n.errorGpsLogUnavailable,
+      GpsFailureKind.bluetoothUnavailable => l10n.errorBluetoothUnavailable,
+      GpsFailureKind.bluetoothOff => l10n.errorBluetoothOff,
+      GpsFailureKind.deviceNotFound => l10n.errorDragyNotFound,
+      GpsFailureKind.connectionFailed => l10n.errorDragyConnection,
     };
