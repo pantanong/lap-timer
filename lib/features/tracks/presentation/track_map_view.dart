@@ -33,6 +33,8 @@ class TrackMapView extends StatelessWidget {
     this.interactive = true,
     this.pointMarkers = const [],
     this.pathLatLng = const [],
+    this.controller,
+    this.panOnly = false,
     super.key,
   });
 
@@ -67,11 +69,41 @@ class TrackMapView extends StatelessWidget {
   /// A driven line to draw, e.g. the brake coach reference lap.
   final List<(double, double)> pathLatLng;
 
+  /// Lets the parent move the map (e.g. "show all lines" button).
+  final MapController? controller;
+
+  /// Drag to move and pinch to zoom only (no tap actions); for maps inside
+  /// a scrolling page.
+  final bool panOnly;
+
+  /// Every timing line of [track] (start/finish, pit lines and the splits
+  /// of [layout]) as map points, for "show all lines".
+  static List<LatLng> linePoints(Track track, SectorLayout? layout) => [
+    for (final line in [
+      ?track.startFinish,
+      ?track.pitEntry,
+      ?track.pitExit,
+      ...?layout?.splits,
+    ])
+      LatLng(line.latitude, line.longitude),
+  ];
+
+  /// Camera showing all [points] (or null when there are fewer than two
+  /// distinct ones).
+  static CameraFit? fitFor(List<LatLng> points) {
+    if (points.toSet().length < 2) return null;
+    return CameraFit.coordinates(
+      coordinates: points,
+      padding: const EdgeInsets.all(48),
+      maxZoom: 18,
+    );
+  }
+
   /// Package name sent to tile servers, as their usage policies require.
   static const String userAgentPackageName = 'com.pantanong.lap_timer';
 
   LatLng get _initialCentre {
-    final line = track.startFinish ?? track.pitEntry;
+    final line = track.startFinish ?? track.pitEntry ?? track.pitExit;
     if (line != null) return LatLng(line.latitude, line.longitude);
     final fix = liveFix;
     if (fix != null) return LatLng(fix.latitude, fix.longitude);
@@ -83,25 +115,43 @@ class TrackMapView extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
     final layout = sectorLayout ?? track.defaultSectorLayout;
-    final lines = <(GateLine, Color, String)>[
-      if (track.startFinish case final l?) (l, Colors.white, 'S/F'),
-      if (track.pitEntry case final l?) (l, colors.warning, 'PIT IN'),
-      if (track.pitExit case final l?) (l, const Color(0xFF3B82F6), 'PIT OUT'),
+    // Labels sit on different sides of their line so that lines close to
+    // each other stay readable: S/F above, pit lines below, splits right.
+    final lines = <(GateLine, Color, String, Alignment)>[
+      if (track.startFinish case final l?)
+        (l, Colors.white, 'S/F', Alignment.topCenter),
+      if (track.pitEntry case final l?)
+        (l, colors.warning, 'PIT IN', Alignment.bottomLeft),
+      if (track.pitExit case final l?)
+        (l, const Color(0xFF3B82F6), 'PIT OUT', Alignment.bottomRight),
       for (final (i, l) in (layout?.splits ?? const <GateLine>[]).indexed)
-        (l, colors.accent, 'S${i + 1}|${i + 2}'),
-      if (previewLine case final l?) (l, colors.slower, 'NEW'),
+        (l, colors.accent, 'S${i + 1}|${i + 2}', Alignment.centerRight),
+      if (previewLine case final l?)
+        (l, colors.slower, 'NEW', Alignment.topCenter),
     ];
+    final int flags;
+    if (!interactive) {
+      flags = InteractiveFlag.none;
+    } else if (panOnly) {
+      flags = InteractiveFlag.drag | InteractiveFlag.pinchZoom;
+    } else {
+      flags = InteractiveFlag.all & ~InteractiveFlag.rotate;
+    }
+    final fix = liveFix;
+    final fit = fitFor([
+      ...linePoints(track, layout),
+      if (fix != null && track.startFinish == null)
+        LatLng(fix.latitude, fix.longitude),
+    ]);
     return FlutterMap(
+      mapController: controller,
       options: MapOptions(
         initialCenter: _initialCentre,
         initialZoom: 17,
+        initialCameraFit: fit,
         maxZoom: 20,
         onTap: onTap == null ? null : (_, point) => onTap?.call(point),
-        interactionOptions: InteractionOptions(
-          flags: interactive
-              ? InteractiveFlag.all & ~InteractiveFlag.rotate
-              : InteractiveFlag.none,
-        ),
+        interactionOptions: InteractionOptions(flags: flags),
       ),
       children: [
         _tileLayer(),
@@ -113,7 +163,7 @@ class TrackMapView extends StatelessWidget {
                 color: Colors.white.withValues(alpha: 0.5),
                 strokeWidth: 2,
               ),
-            for (final (line, color, _) in lines)
+            for (final (line, color, _, _) in lines)
               if (_toPolyline(line) case final points?)
                 Polyline(points: points, color: color, strokeWidth: 5),
           ],
@@ -121,7 +171,7 @@ class TrackMapView extends StatelessWidget {
         CircleLayer(
           circles: [
             // Lines set while standing still: only a point is known.
-            for (final (line, color, _) in lines)
+            for (final (line, color, _, _) in lines)
               if (line.endpoints() == null)
                 CircleMarker(
                   point: LatLng(line.latitude, line.longitude),
@@ -166,12 +216,12 @@ class TrackMapView extends StatelessWidget {
                   ),
                 ),
               ),
-            for (final (line, color, label) in lines)
+            for (final (line, color, label, alignment) in lines)
               Marker(
                 point: LatLng(line.latitude, line.longitude),
                 width: 70,
                 height: 40,
-                alignment: Alignment.topCenter,
+                alignment: alignment,
                 child: Text(
                   label,
                   textAlign: TextAlign.center,

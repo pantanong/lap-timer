@@ -1,11 +1,13 @@
 import 'dart:async';
 
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lap_timer/app/infrastructure_providers.dart';
 import 'package:lap_timer/app/routes.dart';
 import 'package:lap_timer/features/tracks/data/track_editing.dart';
 import 'package:lap_timer/features/tracks/domain/gate_line.dart';
+import 'package:lap_timer/features/tracks/domain/line_spacing.dart';
 import 'package:lap_timer/features/tracks/domain/track.dart';
 import 'package:lap_timer/features/tracks/presentation/position_capture_notifier.dart';
 import 'package:lap_timer/features/tracks/presentation/sector_layout_card.dart';
@@ -13,6 +15,7 @@ import 'package:lap_timer/features/tracks/presentation/text_prompt.dart';
 import 'package:lap_timer/features/tracks/presentation/track_map_view.dart';
 import 'package:lap_timer/l10n/generated/app_localizations.dart';
 import 'package:lap_timer/theme/app_colors.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:material_ui/material_ui.dart';
 
 /// Edit a track: name, start/finish, pit lines and sector layouts.
@@ -185,38 +188,215 @@ class _LineTile extends ConsumerWidget {
         ),
         title: Text(title),
         subtitle: Text(isSet ? l10n.trackLineSet : l10n.trackLineNotSet),
-        trailing: FilledButton(
-          onPressed: () {
-            final captured = ref
-                .read(positionCaptureProvider.notifier)
-                .capture();
-            if (captured == null) return;
-            unawaited(
-              ref.read(trackEditingProvider).setLine(trackId, line, captured),
-            );
-          },
-          child: Text(l10n.trackSetHere),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (isSet)
+              IconButton(
+                tooltip: l10n.trackClearLine,
+                icon: const Icon(Icons.close),
+                onPressed: () => unawaited(
+                  ref.read(trackEditingProvider).clearLine(trackId, line),
+                ),
+              ),
+            FilledButton(
+              onPressed: () {
+                final captured = ref
+                    .read(positionCaptureProvider.notifier)
+                    .capture();
+                if (captured == null) return;
+                unawaited(
+                  ref
+                      .read(trackEditingProvider)
+                      .setLine(trackId, line, captured),
+                );
+              },
+              child: Text(l10n.trackSetHere),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-class _MapPreview extends ConsumerWidget {
+/// The track map in the editor: drag to look around (pinch to zoom),
+/// choose which sector layout to show, jump back to all lines or to the
+/// current position.
+class _MapPreview extends ConsumerStatefulWidget {
   const _MapPreview({required this.track});
 
   final Track track;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) => ClipRRect(
-    borderRadius: BorderRadius.circular(16),
-    child: SizedBox(
-      height: 220,
-      child: TrackMapView(
-        track: track,
-        liveFix: ref.watch(positionCaptureProvider).latest,
-        interactive: false,
-      ),
-    ),
+  ConsumerState<_MapPreview> createState() => _MapPreviewState();
+}
+
+class _MapPreviewState extends ConsumerState<_MapPreview> {
+  final MapController _controller = MapController();
+  String? _layoutId;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  SectorLayout? get _layout {
+    final layouts = widget.track.sectorLayouts;
+    for (final l in layouts) {
+      if (l.id == _layoutId) return l;
+    }
+    return widget.track.defaultSectorLayout;
+  }
+
+  void _showAll() {
+    final fit = TrackMapView.fitFor(
+      TrackMapView.linePoints(widget.track, _layout),
+    );
+    if (fit != null) {
+      _controller.fitCamera(fit);
+      return;
+    }
+    final points = TrackMapView.linePoints(widget.track, _layout);
+    if (points.isNotEmpty) _controller.move(points.first, 18);
+  }
+
+  void _showMe() {
+    final fix = ref.read(positionCaptureProvider).latest;
+    if (fix == null) return;
+    _controller.move(LatLng(fix.latitude, fix.longitude), 18);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final layout = _layout;
+    final layouts = widget.track.sectorLayouts;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: SizedBox(
+            height: 300,
+            child: Stack(
+              children: [
+                TrackMapView(
+                  track: widget.track,
+                  sectorLayout: layout,
+                  liveFix: ref.watch(positionCaptureProvider).latest,
+                  controller: _controller,
+                  panOnly: true,
+                ),
+                PositionedDirectional(
+                  end: 8,
+                  top: 8,
+                  child: Column(
+                    children: [
+                      _MapButton(
+                        icon: Icons.zoom_out_map,
+                        tooltip: l10n.mapShowAllLines,
+                        onPressed: _showAll,
+                      ),
+                      const SizedBox(height: 8),
+                      _MapButton(
+                        icon: Icons.my_location,
+                        tooltip: l10n.mapShowMyPosition,
+                        onPressed: _showMe,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        if (layouts.length > 1)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Wrap(
+              spacing: 8,
+              children: [
+                for (final l in layouts)
+                  ChoiceChip(
+                    label: Text(l.name),
+                    selected: l.id == layout?.id,
+                    onSelected: (_) => setState(() => _layoutId = l.id),
+                  ),
+              ],
+            ),
+          ),
+        _LineSpacingWarning(track: widget.track),
+      ],
+    );
+  }
+}
+
+class _MapButton extends StatelessWidget {
+  const _MapButton({
+    required this.icon,
+    required this.tooltip,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) => Material(
+    color: AppColors.of(context).surface.withValues(alpha: 0.9),
+    shape: const CircleBorder(),
+    child: IconButton(tooltip: tooltip, icon: Icon(icon), onPressed: onPressed),
   );
+}
+
+/// Warns when lines sit on top of each other (a common setup mistake).
+class _LineSpacingWarning extends StatelessWidget {
+  const _LineSpacingWarning({required this.track});
+
+  final Track track;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final colors = AppColors.of(context);
+    final close = findCloseLines(track);
+    if (close.isEmpty) return const SizedBox.shrink();
+    String name(NamedLine n) => switch (n.kind) {
+      LineKind.startFinish => l10n.trackStartFinish,
+      LineKind.pitEntry => l10n.trackPitEntry,
+      LineKind.pitExit => l10n.trackPitExit,
+      LineKind.split => l10n.trackSplitName((n.splitIndex ?? 0) + 1),
+    };
+    return Container(
+      margin: const EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: colors.warning.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.trackLinesTooClose,
+            style: TextStyle(
+              color: colors.warning,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          for (final c in close)
+            Text(
+              l10n.trackLinesTooClosePair(
+                name(c.a),
+                name(c.b),
+                c.distanceMetres.round(),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
 }

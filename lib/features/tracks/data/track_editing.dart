@@ -48,6 +48,20 @@ class TrackEditing {
         },
       );
 
+  /// Removes one of the single lines (e.g. pit lines on a practice track).
+  Future<void> clearLine(String trackId, TrackLine line) => _update(
+    trackId,
+    (t) => Track(
+      id: t.id,
+      name: t.name,
+      startFinish: line == TrackLine.startFinish ? null : t.startFinish,
+      sectorLayouts: t.sectorLayouts,
+      defaultSectorLayoutId: t.defaultSectorLayoutId,
+      pitEntry: line == TrackLine.pitEntry ? null : t.pitEntry,
+      pitExit: line == TrackLine.pitExit ? null : t.pitExit,
+    ),
+  );
+
   /// Adds an empty sector layout named [name].
   Future<void> addLayout(String trackId, String name) => _update(trackId, (t) {
     final layout = SectorLayout(

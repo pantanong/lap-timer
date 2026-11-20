@@ -854,5 +854,45 @@
   "errorDragyConnection": "Could not connect to the Dragy. Switch it off and on, then try again.",
   "@errorDragyConnection": {
     "description": "Failure."
+  },
+  "trackClearLine": "Remove this line",
+  "@trackClearLine": {
+    "description": "Tooltip."
+  },
+  "mapShowAllLines": "Show all lines",
+  "@mapShowAllLines": {
+    "description": "Map button."
+  },
+  "mapShowMyPosition": "Go to my position",
+  "@mapShowMyPosition": {
+    "description": "Map button."
+  },
+  "trackSplitName": "Split {number}",
+  "@trackSplitName": {
+    "description": "A sector split line.",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "trackLinesTooClose": "These lines are almost at the same place:",
+  "@trackLinesTooClose": {
+    "description": "Warning title."
+  },
+  "trackLinesTooClosePair": "{a} and {b}: {metres} m apart",
+  "@trackLinesTooClosePair": {
+    "description": "Two lines too close.",
+    "placeholders": {
+      "a": {
+        "type": "String"
+      },
+      "b": {
+        "type": "String"
+      },
+      "metres": {
+        "type": "int"
+      }
+    }
   }
 }
