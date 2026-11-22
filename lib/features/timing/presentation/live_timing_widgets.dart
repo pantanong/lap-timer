@@ -4,7 +4,9 @@ import 'dart:math' as math;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lap_timer/app/infrastructure_providers.dart';
 import 'package:lap_timer/features/brake_coach/domain/brake_coach.dart';
+import 'package:lap_timer/features/timing/domain/lap.dart';
 import 'package:lap_timer/features/timing/domain/lap_comparison.dart';
+import 'package:lap_timer/features/timing/presentation/headline_content.dart';
 import 'package:lap_timer/features/timing/presentation/live_session_notifier.dart';
 import 'package:lap_timer/features/timing/presentation/live_session_state.dart';
 import 'package:lap_timer/features/timing/presentation/sector_box_data.dart';
@@ -140,8 +142,10 @@ class LiveStatusBar extends StatelessWidget {
   }
 }
 
-/// Big running lap time (or the just-finished lap) plus predicted lap.
-class LiveHeadline extends StatelessWidget {
+/// Top of the live screen: the big number (running lap time, or the gap
+/// of a sector / lap just completed) and, on the right, the predicted lap
+/// (or the time of the lap just completed).
+class LiveHeadline extends ConsumerWidget {
   /// Creates the headline.
   const LiveHeadline({required this.state, super.key});
 
@@ -149,74 +153,127 @@ class LiveHeadline extends StatelessWidget {
   final LiveSessionState state;
 
   @override
-  Widget build(BuildContext context) => LayoutBuilder(
+  Widget build(BuildContext context, WidgetRef ref) => LayoutBuilder(
     builder: (context, constraints) {
       final big = constraints.maxHeight * 0.82;
-      return Row(
-        children: [
-          Expanded(
-            flex: 3,
-            child: GpsNowBuilder(
-              state: state,
-              builder: (context, now) =>
-                  _MainClock(state: state, gpsNowMicros: now, fontSize: big),
-            ),
-          ),
-          Expanded(
-            flex: 2,
-            child: _HeadlineSide(state: state, fontSize: big * 0.36),
-          ),
-        ],
+      return GpsNowBuilder(
+        state: state,
+        builder: (context, gpsNow) {
+          final wallNow = ref.read(clockProvider).now().microsecondsSinceEpoch;
+          final content = headlineContentAt(
+            state,
+            wallNowMicros: wallNow,
+            gpsNowMicros: gpsNow,
+          );
+          return Row(
+            children: [
+              Expanded(
+                flex: 3,
+                child: _MainNumber(content: content, fontSize: big),
+              ),
+              Expanded(
+                flex: 2,
+                child: _HeadlineSide(
+                  state: state,
+                  finishedLap: finishedLapShown(content, state),
+                  // About 25 % larger than before, for reading at speed.
+                  fontSize: big * 0.45,
+                ),
+              ),
+            ],
+          );
+        },
       );
     },
   );
 }
 
-class _MainClock extends StatelessWidget {
-  const _MainClock({
-    required this.state,
-    required this.gpsNowMicros,
-    required this.fontSize,
-  });
+class _MainNumber extends StatelessWidget {
+  const _MainNumber({required this.content, required this.fontSize});
 
-  final LiveSessionState state;
-  final int? gpsNowMicros;
+  final HeadlineContent content;
   final double fontSize;
 
   @override
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
-    final flash = state.flash;
-    final start = state.currentLapStartMicros;
-    final now = gpsNowMicros;
-    final String text;
-    var color = colors.textPrimary;
-    if (flash != null) {
-      text = formatLapTime(flash.lap.timeMicros);
-      if (flash.isBest) color = colors.personalBest;
-    } else if (start != null && now != null) {
-      text = formatLapTime(now - start, decimals: 1);
-    } else {
-      text = '--:--.-';
-    }
-    return Text(
+    final l10n = AppLocalizations.of(context);
+    final (String? tag, String text, Color color) = switch (content) {
+      RunningLapHeadline(:final elapsedMicros) => (
+        null,
+        elapsedMicros == null
+            ? '--:--.-'
+            : formatLapTime(elapsedMicros, decimals: 1),
+        colors.textPrimary,
+      ),
+      SectorGapHeadline(:final sector) => (
+        'S${sector.sectorIndex + 1}',
+        _gapText(sector.deltaMicros, sector.sectorMicros),
+        _gapColor(colors, sector.deltaMicros),
+      ),
+      LapGapHeadline(:final flash) => (
+        l10n.liveLapTag,
+        _gapText(flash.deltaMicros, flash.lap.timeMicros),
+        flash.isBest && flash.deltaMicros == null
+            ? colors.personalBest
+            : _gapColor(colors, flash.deltaMicros),
+      ),
+    };
+    final number = Text(
       text,
       maxLines: 1,
       style: TextStyle(
-        fontSize: fontSize,
+        fontSize: tag == null ? fontSize : fontSize * 0.8,
         fontWeight: FontWeight.w800,
         height: 1,
         color: color,
         fontFeatures: AppTheme.tabularFigures,
       ),
     );
+    if (tag == null) {
+      return Align(alignment: AlignmentDirectional.centerStart, child: number);
+    }
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          tag,
+          style: TextStyle(
+            color: colors.textMuted,
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 1.5,
+          ),
+        ),
+        number,
+      ],
+    );
   }
+
+  /// Green/red for a gap; plain text colour when there is no gap yet.
+  static Color _gapColor(AppColors colors, int? deltaMicros) =>
+      deltaMicros == null
+      ? colors.textPrimary
+      : deltaColor(colors, deltaMicros);
+
+  /// The gap, or the time itself when there is nothing to compare with
+  /// yet (first lap).
+  static String _gapText(int? deltaMicros, int timeMicros) =>
+      deltaMicros == null
+      ? formatLapTime(timeMicros)
+      : formatDelta(deltaMicros);
 }
 
 class _HeadlineSide extends StatelessWidget {
-  const _HeadlineSide({required this.state, required this.fontSize});
+  const _HeadlineSide({
+    required this.state,
+    required this.finishedLap,
+    required this.fontSize,
+  });
 
   final LiveSessionState state;
+  final Lap? finishedLap;
   final double fontSize;
 
   @override
@@ -224,12 +281,16 @@ class _HeadlineSide extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final colors = AppColors.of(context);
     final flash = state.flash;
-    final int? delta;
+    final lap = finishedLap;
     final String label;
-    String? value;
-    if (flash != null) {
+    final String? value;
+    final Color valueColor;
+    int? delta;
+    if (lap != null && flash != null) {
+      // End of lap: the big number shows the gap; keep the lap time here.
       label = flash.isBest ? l10n.liveNewBestLap : l10n.liveLapComplete;
-      delta = flash.deltaMicros;
+      value = formatLapTime(lap.timeMicros);
+      valueColor = flash.isBest ? colors.personalBest : colors.textPrimary;
     } else {
       label = l10n.livePredictedLap;
       final refs = state.references;
@@ -240,6 +301,7 @@ class _HeadlineSide extends StatelessWidget {
       final best = refs.bestLap?.timeMicros;
       value = predicted == null ? null : formatLapTime(predicted, decimals: 1);
       delta = predicted == null || best == null ? null : predicted - best;
+      valueColor = deltaColor(colors, delta);
     }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
@@ -247,27 +309,33 @@ class _HeadlineSide extends StatelessWidget {
       children: [
         Text(
           label.toUpperCase(),
+          maxLines: 1,
           style: TextStyle(color: colors.textMuted, letterSpacing: 1.2),
         ),
         if (value != null)
           Text(
             value,
+            maxLines: 1,
             style: TextStyle(
               fontSize: fontSize * 0.75,
               fontWeight: FontWeight.w800,
+              height: 1.15,
+              color: valueColor,
+              fontFeatures: AppTheme.tabularFigures,
+            ),
+          ),
+        if (delta != null)
+          Text(
+            formatDelta(delta),
+            maxLines: 1,
+            style: TextStyle(
+              fontSize: fontSize,
+              fontWeight: FontWeight.w800,
+              height: 1.1,
               color: deltaColor(colors, delta),
               fontFeatures: AppTheme.tabularFigures,
             ),
           ),
-        Text(
-          delta == null ? '' : formatDelta(delta),
-          style: TextStyle(
-            fontSize: fontSize,
-            fontWeight: FontWeight.w800,
-            color: deltaColor(colors, delta),
-            fontFeatures: AppTheme.tabularFigures,
-          ),
-        ),
       ],
     );
   }
@@ -444,8 +512,10 @@ class _FooterValue extends StatelessWidget {
       Text(
         value,
         style: TextStyle(
-          fontSize: 24,
+          // About 30 % larger than before, for reading at speed.
+          fontSize: 32,
           fontWeight: FontWeight.w700,
+          height: 1.1,
           color: color,
           fontFeatures: AppTheme.tabularFigures,
         ),

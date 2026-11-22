@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lap_timer/app/routes.dart';
+import 'package:lap_timer/core/ui/page_padding.dart';
 import 'package:lap_timer/features/gps/data/gps_log_repository.dart';
 import 'package:lap_timer/features/gps/gps_providers.dart';
 import 'package:lap_timer/l10n/generated/app_localizations.dart';
@@ -20,7 +21,7 @@ class HomeScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.appTitle)),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: pagePadding(context),
         children: [
           _SectionTitle(l10n.homeGpsSourceTitle),
           const _SourcePicker(),

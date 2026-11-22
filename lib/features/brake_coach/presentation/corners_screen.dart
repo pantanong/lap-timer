@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lap_timer/app/infrastructure_providers.dart';
+import 'package:lap_timer/core/ui/page_padding.dart';
 import 'package:lap_timer/features/brake_coach/domain/brake_alert.dart';
 import 'package:lap_timer/features/brake_coach/domain/brake_profile.dart';
 import 'package:lap_timer/features/sessions/domain/session.dart';
@@ -102,7 +103,7 @@ class _CornersScreenState extends ConsumerState<CornersScreen> {
         ],
       ),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: pagePadding(context),
         children: [
           Text(profile.name, style: Theme.of(context).textTheme.titleMedium),
           if (track != null) ...[

@@ -40,9 +40,6 @@ class PendingSessionConfigNotifier extends Notifier<LiveSessionConfig?> {
   set config(LiveSessionConfig? value) => state = value;
 }
 
-/// How long the lap-complete banner stays on screen.
-const Duration lapFlashDuration = Duration(seconds: 5);
-
 /// ViewModel of the live timing screen.
 ///
 /// Wires the selected GPS source to the [LapTimingEngine], records the raw
@@ -56,6 +53,10 @@ class LiveSessionNotifier extends Notifier<LiveSessionState> {
   PitLaneTracker? _pitTracker;
   BrakeCoach? _brakeCoach;
   StintPlan _stints = StintPlan.start(const []);
+
+  /// Driver names were entered: show them (otherwise "Driver(1)" would
+  /// only be noise during practice).
+  bool _hasDrivers = false;
   final GpsRateMeter _rateMeter = GpsRateMeter();
 
   /// Pit stops longer than this are closed automatically (missed exit
@@ -70,12 +71,13 @@ class LiveSessionNotifier extends Notifier<LiveSessionState> {
     });
     final config = ref.read(pendingSessionConfigProvider);
     _stints = StintPlan.start(config?.drivers ?? const []);
+    _hasDrivers = config?.drivers.isNotEmpty ?? false;
     return LiveSessionState(
       status: LiveSessionStatus.preparing,
       sectorCount: config?.sectorLayout?.sectorCount ?? 1,
       compareMode: config?.compareMode ?? SectorCompareMode.bestLap,
       raceRules: config?.raceRules,
-      currentStint: _stints.current,
+      currentStint: _hasDrivers ? _stints.current : null,
       brakeCoachPhase: _brakeCoachEnabled(config)
           ? (config?.brakeProfile == null
                 ? BrakeCoachPhase.learning
@@ -193,9 +195,26 @@ class LiveSessionNotifier extends Notifier<LiveSessionState> {
 
     var laps = state.laps;
     var flash = state.flash;
+    var sectorFlash = state.sectorFlash;
+    final display =
+        ref.read(pendingSessionConfigProvider)?.deltaDisplay ??
+        const DeltaDisplaySettings();
     for (final event in events) {
+      if (event is SectorCompleted) {
+        sectorFlash = SectorFlash(
+          sectorIndex: event.sectorIndex,
+          sectorMicros: event.sectorMicros,
+          deltaMicros: state.references.sectorDeltaMicros(
+            event.sectorIndex,
+            event.sectorMicros,
+            state.compareMode,
+          ),
+          untilWallMicros: wallNow + display.sectorHold.inMicroseconds,
+        );
+      }
       if (event is LapCompleted) {
-        flash = _flashFor(event.lap, laps, wallNow);
+        sectorFlash = null;
+        flash = _flashFor(event.lap, laps, wallNow, display);
         laps = [...laps, event.lap];
         _brakeCoach?.completeLap(
           lapNumber: event.lap.number,
@@ -208,6 +227,8 @@ class LiveSessionNotifier extends Notifier<LiveSessionState> {
       if (event is LapStarted) _brakeCoach?.startLap();
     }
     final flashExpired = flash != null && wallNow > flash.untilWallMicros;
+    final sectorFlashExpired =
+        sectorFlash != null && wallNow > sectorFlash.untilWallMicros;
     _onPitFix(fix, wallNow);
     _onBrakeCoachFix(fix);
     state = state.copyWith(
@@ -223,6 +244,8 @@ class LiveSessionNotifier extends Notifier<LiveSessionState> {
       gpsRateHz: _rateMeter.add(fix.timestampMicros),
       flash: flash,
       clearFlash: flash == null || flashExpired,
+      sectorFlash: sectorFlash,
+      clearSectorFlash: sectorFlash == null || sectorFlashExpired,
     );
     if (events.any((e) => e is LapCompleted)) unawaited(_saveSession());
   }
@@ -280,7 +303,9 @@ class LiveSessionNotifier extends Notifier<LiveSessionState> {
           projectedExitPitMicros: projected,
           clearProjection: projected == null,
           showNextDriver:
-              tracker.hasStopped && fix.speedKmh < rules.resumeSpeedKmh,
+              _hasDrivers &&
+              tracker.hasStopped &&
+              fix.speedKmh < rules.resumeSpeedKmh,
         ),
       );
     }
@@ -303,7 +328,7 @@ class LiveSessionNotifier extends Notifier<LiveSessionState> {
     state = state.copyWith(
       clearPit: true,
       pitStops: [...state.pitStops, stop],
-      currentStint: _stints.current,
+      currentStint: _hasDrivers ? _stints.current : null,
       pitResult: PitResult(
         stop: stop,
         untilWallMicros:
@@ -313,7 +338,14 @@ class LiveSessionNotifier extends Notifier<LiveSessionState> {
     unawaited(_saveSession());
   }
 
-  LapFlash _flashFor(Lap lap, List<Lap> earlier, int wallNow) {
+  /// The end-of-lap sequence: the last sector's gap first (if the lap has
+  /// more than one sector), then the whole lap's gap.
+  LapFlash _flashFor(
+    Lap lap,
+    List<Lap> earlier,
+    int wallNow,
+    DeltaDisplaySettings display,
+  ) {
     final racing = [
       for (final l in earlier)
         if (!lapIncludesPitStop(l, state.pitStops)) l,
@@ -321,11 +353,31 @@ class LiveSessionNotifier extends Notifier<LiveSessionState> {
     final isPitLap =
         lapIncludesPitStop(lap, state.pitStops) || state.pit != null;
     final delta = LapReferences.lapDeltaMicros(lap, racing);
+    final lastIndex = lap.sectorMicros.length - 1;
+    final lastTime = lastIndex >= 1 ? lap.sectorMicros[lastIndex] : null;
+    final lastSector = lastTime == null
+        ? null
+        : SectorFlash(
+            sectorIndex: lastIndex,
+            sectorMicros: lastTime,
+            deltaMicros: state.references.sectorDeltaMicros(
+              lastIndex,
+              lastTime,
+              state.compareMode,
+            ),
+            untilWallMicros: wallNow + display.lastSectorHold.inMicroseconds,
+          );
+    final lastHold = lastSector == null
+        ? 0
+        : display.lastSectorHold.inMicroseconds;
     return LapFlash(
       lap: lap,
       deltaMicros: delta,
       isBest: !isPitLap && (delta == null || delta < 0),
-      untilWallMicros: wallNow + lapFlashDuration.inMicroseconds,
+      startedWallMicros: wallNow,
+      lastSector: lastSector,
+      lastSectorHoldMicros: lastHold,
+      untilWallMicros: wallNow + lastHold + display.lapHold.inMicroseconds,
     );
   }
 

@@ -894,5 +894,34 @@
         "type": "int"
       }
     }
+  },
+  "liveLapTag": "LAP",
+  "@liveLapTag": {
+    "description": "Tag above the big lap gap at the end of a lap."
+  },
+  "gapDisplayTitle": "Big number shows the gap for",
+  "@gapDisplayTitle": {
+    "description": "Section title."
+  },
+  "gapDisplaySector": "After each sector",
+  "@gapDisplaySector": {
+    "description": "Stepper label."
+  },
+  "gapDisplayLastSector": "Lap end: last sector",
+  "@gapDisplayLastSector": {
+    "description": "Stepper label."
+  },
+  "gapDisplayLap": "Lap end: then whole lap",
+  "@gapDisplayLap": {
+    "description": "Stepper label."
+  },
+  "unitSeconds": "{seconds} s",
+  "@unitSeconds": {
+    "description": "Seconds.",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
   }
 }

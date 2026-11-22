@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lap_timer/app/infrastructure_providers.dart';
 import 'package:lap_timer/app/routes.dart';
+import 'package:lap_timer/core/ui/page_padding.dart';
 import 'package:lap_timer/features/brake_coach/domain/brake_alert.dart';
 import 'package:lap_timer/features/brake_coach/domain/brake_coach.dart';
 import 'package:lap_timer/features/brake_coach/domain/brake_detection.dart';
@@ -13,6 +14,7 @@ import 'package:lap_timer/features/gps/gps_providers.dart';
 import 'package:lap_timer/features/race/domain/race_rules.dart';
 import 'package:lap_timer/features/race/presentation/race_rules_screen.dart';
 import 'package:lap_timer/features/sessions/domain/session.dart';
+import 'package:lap_timer/features/sessions/presentation/delta_display_options.dart';
 import 'package:lap_timer/features/timing/domain/lap_comparison.dart';
 import 'package:lap_timer/features/timing/presentation/live_session_notifier.dart';
 import 'package:lap_timer/features/timing/presentation/live_session_state.dart';
@@ -40,6 +42,7 @@ class _NewSessionScreenState extends ConsumerState<NewSessionScreen> {
   String? _rulesId;
   final List<String> _drivers = [];
   BrakeCoachChoice _brake = const BrakeCoachChoice();
+  DeltaDisplaySettings _deltaDisplay = const DeltaDisplaySettings();
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +56,7 @@ class _NewSessionScreenState extends ConsumerState<NewSessionScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.newSessionTitle)),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: pagePadding(context),
         children: [
           _Label(l10n.newSessionTrack),
           if (tracks.isEmpty) Text(l10n.newSessionNoTracks),
@@ -117,6 +120,10 @@ class _NewSessionScreenState extends ConsumerState<NewSessionScreen> {
             ],
             selected: {_compareMode},
             onSelectionChanged: (v) => setState(() => _compareMode = v.single),
+          ),
+          DeltaDisplayOptions(
+            settings: _deltaDisplay,
+            onChanged: (d) => setState(() => _deltaDisplay = d),
           ),
           if (_vehicle != VehicleType.bicycle && track != null)
             BrakeCoachOptions(
@@ -231,6 +238,7 @@ class _NewSessionScreenState extends ConsumerState<NewSessionScreen> {
       drivers: List.of(_drivers),
       brakeCoach: _brakeSettings(),
       brakeProfile: _brake.enabled ? _brakeProfile(track.id) : null,
+      deltaDisplay: _deltaDisplay,
     );
     await context.push(AppRoutes.live);
   }
@@ -278,7 +286,14 @@ class _RulesPicker extends ConsumerWidget {
                     child: Text(l10n.newSessionNoRules),
                   ),
                   for (final r in all)
-                    DropdownMenuItem(value: r.id, child: Text(r.name)),
+                    DropdownMenuItem(
+                      value: r.id,
+                      child: Text(
+                        r.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                 ],
                 onChanged: (id) => onChanged(id ?? ''),
               ),

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lap_timer/app/infrastructure_providers.dart';
+import 'package:lap_timer/core/ui/page_padding.dart';
 import 'package:lap_timer/features/race/domain/race_rules.dart';
 import 'package:lap_timer/features/tracks/presentation/text_prompt.dart';
 import 'package:lap_timer/l10n/generated/app_localizations.dart';
@@ -25,7 +26,7 @@ class RaceRulesScreen extends ConsumerWidget {
         onPressed: () => unawaited(_create(context, ref)),
       ),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: pagePadding(context, hasFloatingButton: true),
         children: [
           for (final rules in all)
             Card(
@@ -157,7 +158,7 @@ class _RaceRulesEditScreenState extends ConsumerState<RaceRulesEditScreen> {
         ],
       ),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: pagePadding(context, hasFloatingButton: true),
         children: [
           Padding(
             padding: const EdgeInsets.only(bottom: 12),

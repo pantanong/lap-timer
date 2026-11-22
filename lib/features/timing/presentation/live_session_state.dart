@@ -24,6 +24,7 @@ class LiveSessionConfig {
     this.drivers = const [],
     this.brakeCoach,
     this.brakeProfile,
+    this.deltaDisplay = const DeltaDisplaySettings(),
   });
 
   /// Track to time on (must have a start/finish line).
@@ -49,6 +50,54 @@ class LiveSessionConfig {
 
   /// Saved brake profile to start from (skips the learning laps).
   final BrakeProfile? brakeProfile;
+
+  /// How long the big number shows sector and lap gaps.
+  final DeltaDisplaySettings deltaDisplay;
+}
+
+/// How long the big number shows a gap instead of the running lap time.
+@immutable
+class DeltaDisplaySettings {
+  /// Creates settings; defaults: 5 s per sector, then at the end of a lap
+  /// 2 s for the last sector followed by 5 s for the whole lap.
+  const DeltaDisplaySettings({
+    this.sectorHold = const Duration(seconds: 5),
+    this.lastSectorHold = const Duration(seconds: 2),
+    this.lapHold = const Duration(seconds: 5),
+  });
+
+  /// After each sector during the lap.
+  final Duration sectorHold;
+
+  /// At the end of the lap: the last sector's gap, first.
+  final Duration lastSectorHold;
+
+  /// At the end of the lap: the whole lap's gap, after the last sector.
+  final Duration lapHold;
+}
+
+/// A just-completed sector, shown big for a few seconds.
+@immutable
+class SectorFlash {
+  /// Creates the flash.
+  const SectorFlash({
+    required this.sectorIndex,
+    required this.sectorMicros,
+    required this.deltaMicros,
+    required this.untilWallMicros,
+  });
+
+  /// 0-based sector.
+  final int sectorIndex;
+
+  /// Sector time.
+  final int sectorMicros;
+
+  /// Gap to the reference (negative = faster), if any.
+  final int? deltaMicros;
+
+  /// Wall-clock time (µs) until which it is shown.
+  final int untilWallMicros;
 }
 
 /// What the pit lane screen shows.
@@ -140,6 +189,9 @@ class LapFlash {
     required this.deltaMicros,
     required this.isBest,
     required this.untilWallMicros,
+    this.startedWallMicros = 0,
+    this.lastSector,
+    this.lastSectorHoldMicros = 0,
   });
 
   /// The lap just completed.
@@ -153,6 +205,15 @@ class LapFlash {
 
   /// Wall-clock time (µs) until which the flash stays on screen.
   final int untilWallMicros;
+
+  /// Wall-clock time (µs) the lap ended.
+  final int startedWallMicros;
+
+  /// The last sector of the lap, shown first (null with one sector).
+  final SectorFlash? lastSector;
+
+  /// How long the last sector is shown before the lap gap.
+  final int lastSectorHoldMicros;
 }
 
 /// Immutable snapshot of a live timing session.
@@ -184,6 +245,7 @@ class LiveSessionState {
     this.brakeCoachPhase,
     this.brakeLearningLaps = 0,
     this.brakeLearningLapsNeeded = 0,
+    this.sectorFlash,
   });
 
   /// Lifecycle step.
@@ -260,6 +322,9 @@ class LiveSessionState {
   /// Learning laps needed before alerts start.
   final int brakeLearningLapsNeeded;
 
+  /// The sector just completed, shown big for a few seconds.
+  final SectorFlash? sectorFlash;
+
   /// Laps without a pit stop: the only ones that count for best times.
   List<Lap> get racingLaps => [
     for (final lap in laps)
@@ -307,6 +372,8 @@ class LiveSessionState {
     BrakeAlert? brakeAlert,
     BrakeCoachPhase? brakeCoachPhase,
     int? brakeLearningLaps,
+    SectorFlash? sectorFlash,
+    bool clearSectorFlash = false,
   }) => LiveSessionState(
     status: status ?? this.status,
     failure: failure ?? this.failure,
@@ -333,5 +400,6 @@ class LiveSessionState {
     brakeCoachPhase: brakeCoachPhase ?? this.brakeCoachPhase,
     brakeLearningLaps: brakeLearningLaps ?? this.brakeLearningLaps,
     brakeLearningLapsNeeded: brakeLearningLapsNeeded,
+    sectorFlash: clearSectorFlash ? null : (sectorFlash ?? this.sectorFlash),
   );
 }

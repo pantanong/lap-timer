@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:lap_timer/app/infrastructure_providers.dart';
 import 'package:lap_timer/app/routes.dart';
+import 'package:lap_timer/core/ui/page_padding.dart';
 import 'package:lap_timer/features/timing/domain/lap_comparison.dart';
 import 'package:lap_timer/features/timing/presentation/time_format.dart';
 import 'package:lap_timer/l10n/generated/app_localizations.dart';
@@ -25,7 +26,7 @@ class SessionsScreen extends ConsumerWidget {
           child: Text(l10n.historyEmpty),
         ),
         AsyncData(:final value) => ListView(
-          padding: const EdgeInsets.all(16),
+          padding: pagePadding(context),
           children: [
             for (final s in value)
               Card(

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lap_timer/app/infrastructure_providers.dart';
 import 'package:lap_timer/app/routes.dart';
+import 'package:lap_timer/core/ui/page_padding.dart';
 import 'package:lap_timer/features/tracks/data/track_editing.dart';
 import 'package:lap_timer/features/tracks/domain/gate_line.dart';
 import 'package:lap_timer/features/tracks/domain/line_spacing.dart';
@@ -59,7 +60,7 @@ class TrackEditorScreen extends ConsumerWidget {
         ],
       ),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: pagePadding(context),
         children: [
           _MapPreview(track: track),
           const SizedBox(height: 8),

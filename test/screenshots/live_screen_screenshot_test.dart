@@ -5,9 +5,11 @@ library;
 
 import 'dart:io';
 
+import 'package:clock/clock.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lap_timer/app/infrastructure_providers.dart';
 import 'package:lap_timer/core/screen_awake_service.dart';
 import 'package:lap_timer/features/brake_coach/domain/brake_alert.dart';
 import 'package:lap_timer/features/brake_coach/domain/brake_coach.dart';
@@ -96,6 +98,8 @@ Future<void> _shot(
     ProviderScope(
       overrides: [
         screenAwakeServiceProvider.overrideWithValue(_NoopAwake()),
+        // Freeze wall time so timed displays render deterministically.
+        clockProvider.overrideWithValue(Clock.fixed(_frozenNow)),
         liveSessionProvider.overrideWith(() => _FixedSession(state)),
       ],
       child: MaterialApp(
@@ -119,10 +123,13 @@ Future<void> _shot(
   await tester.pumpWidget(const SizedBox());
 }
 
+/// Wall time all screenshots are rendered at.
+final DateTime _frozenNow = DateTime.now();
+
 void main() {
   setUpAll(_loadFonts);
 
-  final now = DateTime.now().microsecondsSinceEpoch;
+  final now = _frozenNow.microsecondsSinceEpoch;
   testWidgets('three sectors, mid-lap', (tester) async {
     await _shot(
       tester,
@@ -293,6 +300,117 @@ void main() {
         const BrakeAlert(phase: BrakeAlertPhase.brakeNow, cornerIndex: 2),
       ),
       'brake_red',
+    );
+  });
+
+  // Gap display: the user's real numbers from the Dragy test.
+  LiveSessionState gapState({
+    SectorFlash? sector,
+    LapFlash? lapFlash,
+    List<int?> sectors = const [14880000, 10150000],
+    int sectorIndex = 2,
+  }) => LiveSessionState(
+    status: LiveSessionStatus.running,
+    sectorCount: 3,
+    compareMode: SectorCompareMode.bestLap,
+    laps: const [
+      Lap(
+        number: 2,
+        startMicros: 0,
+        endMicros: 127300000,
+        sectorMicros: [17140000, 12900000, 97260000],
+      ),
+      Lap(
+        number: 3,
+        startMicros: 127300000,
+        endMicros: 258120000,
+        sectorMicros: [17500000, 13000000, 100320000],
+      ),
+    ],
+    lapNumber: 4,
+    currentLapStartMicros: 258120000,
+    currentSectorIndex: sectorIndex,
+    currentLapSectors: sectors,
+    currentSectorStartMicros: 258120000 + 25030000,
+    lastFixMicros: 258120000 + 104400000,
+    lastFixWallMicros: now,
+    gpsRateHz: 10,
+    sectorFlash: sector,
+    flash: lapFlash,
+  );
+
+  testWidgets('gap 1: running (larger predicted / last / best)', (t) async {
+    await _shot(t, gapState(), 'gap_1_running');
+  });
+
+  testWidgets('gap 2: just finished sector 2', (t) async {
+    await _shot(
+      t,
+      gapState(
+        sector: SectorFlash(
+          sectorIndex: 1,
+          sectorMicros: 10150000,
+          deltaMicros: -2750000,
+          untilWallMicros: now + 5000000,
+        ),
+      ),
+      'gap_2_sector',
+    );
+  });
+
+  const finished = Lap(
+    number: 4,
+    startMicros: 258120000,
+    endMicros: 380700000,
+    sectorMicros: [14880000, 10150000, 97550000],
+  );
+  testWidgets('gap 3: lap end, last sector first', (t) async {
+    await _shot(
+      t,
+      gapState(
+        sectors: const [],
+        sectorIndex: 0,
+        lapFlash: LapFlash(
+          lap: finished,
+          deltaMicros: -4720000,
+          isBest: true,
+          startedWallMicros: now,
+          lastSector: SectorFlash(
+            sectorIndex: 2,
+            sectorMicros: 97550000,
+            deltaMicros: 290000,
+            untilWallMicros: now + 2000000,
+          ),
+          lastSectorHoldMicros: 2000000,
+          untilWallMicros: now + 7000000,
+        ),
+      ),
+      'gap_3_last_sector',
+    );
+  });
+
+  testWidgets('gap 4: lap end, then the lap gap', (t) async {
+    await _shot(
+      t,
+      gapState(
+        sectors: const [],
+        sectorIndex: 0,
+        lapFlash: LapFlash(
+          lap: finished,
+          deltaMicros: -4720000,
+          isBest: true,
+          startedWallMicros: now - 3000000,
+          lastSector: SectorFlash(
+            sectorIndex: 2,
+            sectorMicros: 97550000,
+            deltaMicros: 290000,
+            untilWallMicros: now - 1000000,
+          ),
+          lastSectorHoldMicros: 2000000,
+          untilWallMicros: now + 4000000,
+        ),
+      ),
+      'gap_4_lap',
     );
   });
 }

@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lap_timer/app/infrastructure_providers.dart';
 import 'package:lap_timer/app/routes.dart';
+import 'package:lap_timer/core/ui/page_padding.dart';
 import 'package:lap_timer/features/sessions/domain/session.dart';
 import 'package:lap_timer/features/timing/domain/lap_comparison.dart';
 import 'package:lap_timer/features/timing/presentation/time_format.dart';
@@ -41,7 +42,7 @@ class SessionDetailScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: Text(session.trackName)),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: pagePadding(context),
         children: [
           Text(session.sectorLayoutName),
           const SizedBox(height: 12),

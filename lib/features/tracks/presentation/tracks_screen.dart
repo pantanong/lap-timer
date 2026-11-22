@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lap_timer/app/infrastructure_providers.dart';
 import 'package:lap_timer/app/routes.dart';
+import 'package:lap_timer/core/ui/page_padding.dart';
 import 'package:lap_timer/features/tracks/domain/track.dart';
 import 'package:lap_timer/l10n/generated/app_localizations.dart';
 import 'package:material_ui/material_ui.dart';
@@ -26,7 +27,7 @@ class TracksScreen extends ConsumerWidget {
       ),
       body: switch (tracks) {
         AsyncData(:final value) => ListView(
-          padding: const EdgeInsets.all(16),
+          padding: pagePadding(context, hasFloatingButton: true),
           children: [for (final track in value) _TrackTile(track: track)],
         ),
         AsyncError() => Center(child: Text(l10n.errorGeneric)),
