@@ -16,13 +16,25 @@ final class RunningLapHeadline extends HeadlineContent {
   final int? elapsedMicros;
 }
 
-/// The gap of a sector that has just been completed.
+/// The gap of a sector that has just been completed, next to a time.
 final class SectorGapHeadline extends HeadlineContent {
   /// Creates the content.
-  const SectorGapHeadline(this.sector);
+  const SectorGapHeadline(
+    this.sector, {
+    required this.timeMicros,
+    this.finishedLap,
+  });
 
   /// The sector.
   final SectorFlash sector;
+
+  /// Time shown before the gap: the running lap time during a lap, the
+  /// finished lap's time at the end of a lap. Null before the first
+  /// start/finish crossing.
+  final int? timeMicros;
+
+  /// Set at the end of a lap (the gap of its last sector).
+  final LapFlash? finishedLap;
 }
 
 /// The gap of the lap that has just been completed.
@@ -44,22 +56,27 @@ HeadlineContent headlineContentAt(
   required int wallNowMicros,
   required int? gpsNowMicros,
 }) {
+  final start = state.currentLapStartMicros;
+  final now = gpsNowMicros;
+  final elapsed = start == null || now == null ? null : now - start;
   final flash = state.flash;
   if (flash != null && wallNowMicros <= flash.untilWallMicros) {
     final sinceEnd = wallNowMicros - flash.startedWallMicros;
     final last = flash.lastSector;
     if (last != null && sinceEnd < flash.lastSectorHoldMicros) {
-      return SectorGapHeadline(last);
+      return SectorGapHeadline(
+        last,
+        timeMicros: flash.lap.timeMicros,
+        finishedLap: flash,
+      );
     }
     return LapGapHeadline(flash);
   }
   final sector = state.sectorFlash;
   if (sector != null && wallNowMicros <= sector.untilWallMicros) {
-    return SectorGapHeadline(sector);
+    return SectorGapHeadline(sector, timeMicros: elapsed);
   }
-  final start = state.currentLapStartMicros;
-  final now = gpsNowMicros;
-  return RunningLapHeadline(start == null || now == null ? null : now - start);
+  return RunningLapHeadline(elapsed);
 }
 
 /// The lap whose time the side panel should show instead of the predicted

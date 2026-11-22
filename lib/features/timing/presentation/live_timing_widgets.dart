@@ -188,6 +188,10 @@ class LiveHeadline extends ConsumerWidget {
   );
 }
 
+/// The big number: a time, followed for a few seconds by a gap in
+/// brackets, e.g. `1:44.4 (−2.75)`. The time keeps its colour (white, or
+/// purple for a new best lap); the bracketed gap is green when faster and
+/// red when slower. The text is scaled down when needed so it always fits.
 class _MainNumber extends StatelessWidget {
   const _MainNumber({required this.content, required this.fontSize});
 
@@ -197,72 +201,91 @@ class _MainNumber extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
-    final l10n = AppLocalizations.of(context);
-    final (String? tag, String text, Color color) = switch (content) {
+    final (
+      int? timeMicros,
+      int decimals,
+      Color timeColor,
+      int? gap,
+    ) = switch (content) {
       RunningLapHeadline(:final elapsedMicros) => (
-        null,
-        elapsedMicros == null
-            ? '--:--.-'
-            : formatLapTime(elapsedMicros, decimals: 1),
+        elapsedMicros,
+        1,
         colors.textPrimary,
+        null,
       ),
-      SectorGapHeadline(:final sector) => (
-        'S${sector.sectorIndex + 1}',
-        _gapText(sector.deltaMicros, sector.sectorMicros),
-        _gapColor(colors, sector.deltaMicros),
-      ),
+      SectorGapHeadline(:final sector, :final timeMicros, :final finishedLap) =>
+        (
+          timeMicros,
+          // A finished lap shows hundredths, a running one tenths.
+          finishedLap == null ? 1 : 2,
+          finishedLap?.isBest ?? false
+              ? colors.personalBest
+              : colors.textPrimary,
+          sector.deltaMicros,
+        ),
       LapGapHeadline(:final flash) => (
-        l10n.liveLapTag,
-        _gapText(flash.deltaMicros, flash.lap.timeMicros),
-        flash.isBest && flash.deltaMicros == null
-            ? colors.personalBest
-            : _gapColor(colors, flash.deltaMicros),
+        flash.lap.timeMicros,
+        2,
+        flash.isBest ? colors.personalBest : colors.textPrimary,
+        flash.deltaMicros,
       ),
     };
-    final number = Text(
-      text,
-      maxLines: 1,
-      style: TextStyle(
-        fontSize: tag == null ? fontSize : fontSize * 0.8,
-        fontWeight: FontWeight.w800,
-        height: 1,
-        color: color,
-        fontFeatures: AppTheme.tabularFigures,
-      ),
+    final timeText = timeMicros == null
+        ? '--:--.-'
+        : formatLapTime(timeMicros, decimals: decimals);
+    final gapText = gap == null ? null : ' (${formatDelta(gap)})';
+    const style = TextStyle(
+      fontWeight: FontWeight.w800,
+      height: 1,
+      fontFeatures: AppTheme.tabularFigures,
     );
-    if (tag == null) {
-      return Align(alignment: AlignmentDirectional.centerStart, child: number);
-    }
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.start,
+    final span = TextSpan(
       children: [
-        Text(
-          tag,
-          style: TextStyle(
-            color: colors.textMuted,
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 1.5,
-          ),
+        TextSpan(
+          text: timeText,
+          style: style.copyWith(color: timeColor),
         ),
-        number,
+        if (gapText != null && gap != null)
+          TextSpan(
+            text: gapText,
+            style: style.copyWith(color: deltaColor(colors, gap)),
+          ),
       ],
     );
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Measure at size 100 with the same font the Text will use, then
+        // scale to fit both height and width.
+        final base = DefaultTextStyle.of(context).style.merge(style);
+        final painter = TextPainter(
+          text: TextSpan(style: base.copyWith(fontSize: 100), children: [span]),
+          textDirection: Directionality.of(context),
+          textScaler: MediaQuery.textScalerOf(context),
+          maxLines: 1,
+        )..layout();
+        final widthAt100 = painter.width;
+        painter.dispose();
+        final fitted = widthAt100 <= 0
+            ? fontSize
+            // 3 % margin so rounding never pushes the gap off the line.
+            : math.min(
+                fontSize,
+                constraints.maxWidth / widthAt100 * 100 * 0.97,
+              );
+        return Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: Text.rich(
+            TextSpan(
+              style: style.copyWith(fontSize: fitted),
+              children: [span],
+            ),
+            maxLines: 1,
+            softWrap: false,
+          ),
+        );
+      },
+    );
   }
-
-  /// Green/red for a gap; plain text colour when there is no gap yet.
-  static Color _gapColor(AppColors colors, int? deltaMicros) =>
-      deltaMicros == null
-      ? colors.textPrimary
-      : deltaColor(colors, deltaMicros);
-
-  /// The gap, or the time itself when there is nothing to compare with
-  /// yet (first lap).
-  static String _gapText(int? deltaMicros, int timeMicros) =>
-      deltaMicros == null
-      ? formatLapTime(timeMicros)
-      : formatDelta(deltaMicros);
 }
 
 class _HeadlineSide extends StatelessWidget {
