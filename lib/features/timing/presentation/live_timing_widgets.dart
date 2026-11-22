@@ -165,20 +165,19 @@ class LiveHeadline extends ConsumerWidget {
             wallNowMicros: wallNow,
             gpsNowMicros: gpsNow,
           );
+          // The side panel takes only the width it needs; the big number
+          // gets all the rest (no empty gap between them).
           return Row(
             children: [
               Expanded(
-                flex: 3,
                 child: _MainNumber(content: content, fontSize: big),
               ),
-              Expanded(
-                flex: 2,
-                child: _HeadlineSide(
-                  state: state,
-                  finishedLap: finishedLapShown(content, state),
-                  // About 25 % larger than before, for reading at speed.
-                  fontSize: big * 0.45,
-                ),
+              const SizedBox(width: 16),
+              _HeadlineSide(
+                state: state,
+                finishedLap: finishedLapShown(content, state),
+                // About 25 % larger than before, for reading at speed.
+                fontSize: big * 0.45,
               ),
             ],
           );
@@ -530,13 +529,13 @@ class _FooterValue extends StatelessWidget {
     children: [
       Text(
         label.toUpperCase(),
-        style: TextStyle(color: AppColors.of(context).textMuted, fontSize: 11),
+        style: TextStyle(color: AppColors.of(context).textMuted, fontSize: 13),
       ),
       Text(
         value,
         style: TextStyle(
-          // About 30 % larger than before, for reading at speed.
-          fontSize: 32,
+          // Two thirds larger than the first version, for reading at speed.
+          fontSize: 40,
           fontWeight: FontWeight.w700,
           height: 1.1,
           color: color,
