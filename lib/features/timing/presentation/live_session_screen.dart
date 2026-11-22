@@ -131,10 +131,11 @@ class _TimingView extends StatelessWidget {
     children: [
       LiveStatusBar(state: state, onEnd: onEnd),
       const SizedBox(height: 4),
-      Expanded(flex: 5, child: LiveHeadline(state: state)),
-      const SizedBox(height: 10),
-      Expanded(flex: 4, child: SectorBoxesRow(state: state)),
-      const SizedBox(height: 10),
+      // Big number gets most of the height; sector boxes stay compact.
+      Expanded(flex: 6, child: LiveHeadline(state: state)),
+      const SizedBox(height: 6),
+      Expanded(flex: 3, child: SectorBoxesRow(state: state)),
+      const SizedBox(height: 6),
       LiveFooter(state: state),
     ],
   );

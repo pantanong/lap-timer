@@ -215,8 +215,8 @@ class _MainNumber extends StatelessWidget {
       SectorGapHeadline(:final sector, :final timeMicros, :final finishedLap) =>
         (
           timeMicros,
-          // A finished lap shows hundredths, a running one tenths.
-          finishedLap == null ? 1 : 2,
+          // Tenths on the top row (hundredths are in Last/Best).
+          1,
           finishedLap?.isBest ?? false
               ? colors.personalBest
               : colors.textPrimary,
@@ -224,7 +224,7 @@ class _MainNumber extends StatelessWidget {
         ),
       LapGapHeadline(:final flash) => (
         flash.lap.timeMicros,
-        2,
+        1,
         flash.isBest ? colors.personalBest : colors.textPrimary,
         flash.deltaMicros,
       ),
@@ -311,7 +311,7 @@ class _HeadlineSide extends StatelessWidget {
     if (lap != null && flash != null) {
       // End of lap: the big number shows the gap; keep the lap time here.
       label = flash.isBest ? l10n.liveNewBestLap : l10n.liveLapComplete;
-      value = formatLapTime(lap.timeMicros);
+      value = formatLapTime(lap.timeMicros, decimals: 1);
       valueColor = flash.isBest ? colors.personalBest : colors.textPrimary;
     } else {
       label = l10n.livePredictedLap;
@@ -436,9 +436,10 @@ class SectorBox extends StatelessWidget {
           border: Border.all(color: border, width: 2.5),
         ),
         child: Padding(
-          padding: const EdgeInsetsDirectional.fromSTEB(12, 8, 8, 8),
+          padding: const EdgeInsetsDirectional.fromSTEB(12, 4, 8, 4),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
                 label,
@@ -446,7 +447,6 @@ class SectorBox extends StatelessWidget {
                 overflow: TextOverflow.clip,
                 style: TextStyle(color: colors.textMuted, fontSize: 13),
               ),
-              const Spacer(),
               Text(
                 big,
                 maxLines: 1,
@@ -454,7 +454,8 @@ class SectorBox extends StatelessWidget {
                   // Fit both the box height and its width (≈0.62 em per
                   // glyph for tabular digits).
                   fontSize: math.min(
-                    constraints.maxHeight * (compact ? 0.32 : 0.48),
+                    // Box height minus the label line.
+                    (constraints.maxHeight - 26) * (compact ? 0.7 : 0.92),
                     (constraints.maxWidth - 24) / (big.length * 0.62),
                   ),
                   fontWeight: FontWeight.w800,
@@ -534,8 +535,8 @@ class _FooterValue extends StatelessWidget {
       Text(
         value,
         style: TextStyle(
-          // Two thirds larger than the first version, for reading at speed.
-          fontSize: 40,
+          // Twice the first version, for reading at speed.
+          fontSize: 48,
           fontWeight: FontWeight.w700,
           height: 1.1,
           color: color,
