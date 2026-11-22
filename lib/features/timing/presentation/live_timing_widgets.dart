@@ -425,9 +425,12 @@ class SectorBox extends StatelessWidget {
       ),
       SectorBoxKind.pending => (colors.outline, '—', colors.textMuted),
     };
-    final label = data.kind == SectorBoxKind.done && time != null
-        ? 'S${data.index + 1} · ${formatLapTime(time)}'
-        : 'S${data.index + 1}${data.kind == SectorBoxKind.running ? ' ›' : ''}';
+    final name =
+        'S${data.index + 1}${data.kind == SectorBoxKind.running ? ' ›' : ''}';
+    // The sector's own time is shown in yellow next to its name.
+    final sectorTime = data.kind == SectorBoxKind.done && time != null
+        ? formatLapTime(time)
+        : null;
     return LayoutBuilder(
       builder: (context, constraints) => DecoratedBox(
         decoration: BoxDecoration(
@@ -441,8 +444,20 @@ class SectorBox extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
-                label,
+              Text.rich(
+                TextSpan(
+                  text: name,
+                  children: [
+                    if (sectorTime != null)
+                      TextSpan(
+                        text: ' · $sectorTime',
+                        style: TextStyle(
+                          color: colors.warning,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                  ],
+                ),
                 maxLines: 1,
                 overflow: TextOverflow.clip,
                 style: TextStyle(color: colors.textMuted, fontSize: 13),

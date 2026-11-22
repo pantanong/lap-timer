@@ -41,14 +41,22 @@ class SectorBoxData {
 
 /// Builds the sector boxes for the live screen at GPS time [gpsNowMicros].
 ///
-/// While a lap-complete banner is showing, the boxes show the finished
-/// lap compared with the references as they were *before* that lap.
+/// Until the first sector of a new lap is completed, the boxes keep showing
+/// the previous lap, compared with the references as they were *before*
+/// that lap.
 List<SectorBoxData> buildSectorBoxes(
   LiveSessionState state,
   int? gpsNowMicros,
 ) {
+  // The previous lap stays visible until the first sector of the new lap
+  // is completed (then the new lap's boxes take over).
   final flash = state.flash;
   if (flash != null) return _finishedLapBoxes(state, flash.lap);
+  final laps = state.laps;
+  final noSectorYet = state.currentLapSectors.isEmpty;
+  if (noSectorYet && laps.isNotEmpty && state.currentLapStartMicros != null) {
+    return _finishedLapBoxes(state, laps.last);
+  }
 
   final refs = state.references;
   final boxes = <SectorBoxData>[];
