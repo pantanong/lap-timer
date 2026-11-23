@@ -18,6 +18,7 @@ import 'package:lap_timer/features/sessions/domain/session.dart';
 import 'package:lap_timer/features/timing/domain/lap.dart';
 import 'package:lap_timer/features/timing/domain/lap_comparison.dart';
 import 'package:lap_timer/features/timing/domain/lap_timing_engine.dart';
+import 'package:lap_timer/features/timing/domain/live_delta.dart';
 import 'package:lap_timer/features/timing/presentation/live_session_state.dart';
 
 /// The configuration for the next live session, set by the New Session
@@ -52,6 +53,7 @@ class LiveSessionNotifier extends Notifier<LiveSessionState> {
   Session? _session;
   PitLaneTracker? _pitTracker;
   BrakeCoach? _brakeCoach;
+  LiveDeltaTracker? _liveDelta;
   StintPlan _stints = StintPlan.start(const []);
 
   /// Driver names were entered: show them (otherwise "Driver(1)" would
@@ -122,6 +124,12 @@ class LiveSessionNotifier extends Notifier<LiveSessionState> {
         startingProfile: config.brakeProfile,
       );
     }
+    _liveDelta = LiveDeltaTracker(
+      LocalProjection(
+        originLatitude: startFinish.latitude,
+        originLongitude: startFinish.longitude,
+      ),
+    );
     _engine = LapTimingEngine(
       startFinish: startFinish,
       splits: config.sectorLayout?.splits ?? const [],
@@ -216,21 +224,33 @@ class LiveSessionNotifier extends Notifier<LiveSessionState> {
         sectorFlash = null;
         flash = _flashFor(event.lap, laps, wallNow, display);
         laps = [...laps, event.lap];
+        final isRacingLap =
+            state.pit == null && !lapIncludesPitStop(event.lap, state.pitStops);
         _brakeCoach?.completeLap(
           lapNumber: event.lap.number,
           lapTimeMicros: event.lap.timeMicros,
-          isRacingLap:
-              state.pit == null &&
-              !lapIncludesPitStop(event.lap, state.pitStops),
+          isRacingLap: isRacingLap,
+        );
+        _liveDelta?.completeLap(
+          lapMicros: event.lap.timeMicros,
+          isRacingLap: isRacingLap,
         );
       }
-      if (event is LapStarted) _brakeCoach?.startLap();
+      if (event is LapStarted) {
+        _brakeCoach?.startLap();
+        _liveDelta?.startLap(event.atMicros);
+      }
     }
     final flashExpired = flash != null && wallNow > flash.untilWallMicros;
     final sectorFlashExpired =
         sectorFlash != null && wallNow > sectorFlash.untilWallMicros;
     _onPitFix(fix, wallNow);
     _onBrakeCoachFix(fix);
+    final liveDelta = _liveDelta?.add(
+      latitude: fix.latitude,
+      longitude: fix.longitude,
+      timeMicros: fix.timestampMicros,
+    );
     state = state.copyWith(
       laps: laps,
       lapNumber: engine.currentLapNumber,
@@ -246,6 +266,9 @@ class LiveSessionNotifier extends Notifier<LiveSessionState> {
       clearFlash: flash == null || flashExpired,
       sectorFlash: sectorFlash,
       clearSectorFlash: sectorFlash == null || sectorFlashExpired,
+      // No live delta in the pit lane.
+      liveDeltaMicros: liveDelta,
+      clearLiveDelta: liveDelta == null || state.pit != null,
     );
     if (events.any((e) => e is LapCompleted)) unawaited(_saveSession());
   }

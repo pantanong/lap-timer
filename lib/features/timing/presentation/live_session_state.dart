@@ -246,6 +246,7 @@ class LiveSessionState {
     this.brakeLearningLaps = 0,
     this.brakeLearningLapsNeeded = 0,
     this.sectorFlash,
+    this.liveDeltaMicros,
   });
 
   /// Lifecycle step.
@@ -325,6 +326,10 @@ class LiveSessionState {
   /// The sector just completed, shown big for a few seconds.
   final SectorFlash? sectorFlash;
 
+  /// Live gap to the best lap at the current position (negative = ahead);
+  /// null without a best lap, before the first crossing or off the line.
+  final int? liveDeltaMicros;
+
   /// Laps without a pit stop: the only ones that count for best times.
   List<Lap> get racingLaps => [
     for (final lap in laps)
@@ -374,6 +379,8 @@ class LiveSessionState {
     int? brakeLearningLaps,
     SectorFlash? sectorFlash,
     bool clearSectorFlash = false,
+    int? liveDeltaMicros,
+    bool clearLiveDelta = false,
   }) => LiveSessionState(
     status: status ?? this.status,
     failure: failure ?? this.failure,
@@ -401,5 +408,8 @@ class LiveSessionState {
     brakeLearningLaps: brakeLearningLaps ?? this.brakeLearningLaps,
     brakeLearningLapsNeeded: brakeLearningLapsNeeded,
     sectorFlash: clearSectorFlash ? null : (sectorFlash ?? this.sectorFlash),
+    liveDeltaMicros: clearLiveDelta
+        ? null
+        : (liveDeltaMicros ?? this.liveDeltaMicros),
   );
 }

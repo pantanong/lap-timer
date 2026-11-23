@@ -309,6 +309,7 @@ void main() {
     LapFlash? lapFlash,
     List<int?> sectors = const [14880000, 10150000],
     int sectorIndex = 2,
+    int? liveDelta = -1320000,
   }) => LiveSessionState(
     status: LiveSessionStatus.running,
     sectorCount: 3,
@@ -337,6 +338,7 @@ void main() {
     gpsRateHz: 10,
     sectorFlash: sector,
     flash: lapFlash,
+    liveDeltaMicros: liveDelta,
   );
 
   testWidgets('gap 1: running (larger predicted / last / best)', (t) async {
