@@ -35,6 +35,8 @@ class TrackMapView extends StatelessWidget {
     this.pathLatLng = const [],
     this.controller,
     this.panOnly = false,
+    this.focus,
+    this.previewLabel = 'NEW',
     super.key,
   });
 
@@ -75,6 +77,13 @@ class TrackMapView extends StatelessWidget {
   /// Drag to move and pinch to zoom only (no tap actions); for maps inside
   /// a scrolling page.
   final bool panOnly;
+
+  /// When set, the map opens zoomed in on this point instead of fitting
+  /// every line (e.g. on the line being adjusted).
+  final LatLng? focus;
+
+  /// Label drawn next to [previewLine].
+  final String previewLabel;
 
   /// Every timing line of [track] (start/finish, pit lines and the splits
   /// of [layout]) as map points, for "show all lines".
@@ -127,7 +136,7 @@ class TrackMapView extends StatelessWidget {
       for (final (i, l) in (layout?.splits ?? const <GateLine>[]).indexed)
         (l, colors.accent, 'S${i + 1}|${i + 2}', Alignment.centerRight),
       if (previewLine case final l?)
-        (l, colors.slower, 'NEW', Alignment.topCenter),
+        (l, colors.slower, previewLabel, Alignment.topCenter),
     ];
     final int flags;
     if (!interactive) {
@@ -146,9 +155,9 @@ class TrackMapView extends StatelessWidget {
     return FlutterMap(
       mapController: controller,
       options: MapOptions(
-        initialCenter: _initialCentre,
-        initialZoom: 17,
-        initialCameraFit: fit,
+        initialCenter: focus ?? _initialCentre,
+        initialZoom: focus == null ? 17 : 18.5,
+        initialCameraFit: focus == null ? fit : null,
         maxZoom: 20,
         onTap: onTap == null ? null : (_, point) => onTap?.call(point),
         interactionOptions: InteractionOptions(flags: flags),
@@ -252,11 +261,15 @@ class TrackMapView extends StatelessWidget {
     ),
   };
 
-  Widget _attribution() => SimpleAttributionWidget(
-    source: Text(switch (imagery) {
-      MapImagery.satellite => 'Esri, Maxar, Earthstar Geographics',
-      MapImagery.street => 'OpenStreetMap contributors',
-    }),
+  // Small and never enlarged by the system font size, so the credit line
+  // always fits on a phone map.
+  Widget _attribution() => MediaQuery.withNoTextScaling(
+    child: SimpleAttributionWidget(
+      source: Text(switch (imagery) {
+        MapImagery.satellite => 'Esri, Maxar, Earthstar Geographics',
+        MapImagery.street => 'OpenStreetMap contributors',
+      }, style: const TextStyle(fontSize: 11)),
+    ),
   );
 
   static List<LatLng>? _toPolyline(GateLine line) {

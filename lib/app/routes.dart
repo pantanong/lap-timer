@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lap_timer/features/brake_coach/presentation/corners_screen.dart';
 import 'package:lap_timer/features/gps/presentation/gps_monitor_screen.dart';
@@ -7,6 +8,8 @@ import 'package:lap_timer/features/sessions/presentation/new_session_screen.dart
 import 'package:lap_timer/features/sessions/presentation/session_detail_screen.dart';
 import 'package:lap_timer/features/sessions/presentation/sessions_screen.dart';
 import 'package:lap_timer/features/timing/presentation/live_session_screen.dart';
+import 'package:lap_timer/features/tracks/domain/line_ref.dart';
+import 'package:lap_timer/features/tracks/presentation/line_editor_screen.dart';
 import 'package:lap_timer/features/tracks/presentation/track_editor_screen.dart';
 import 'package:lap_timer/features/tracks/presentation/track_map_screen.dart';
 import 'package:lap_timer/features/tracks/presentation/tracks_screen.dart';
@@ -39,6 +42,12 @@ abstract final class AppRoutes {
 
   /// Satellite map to place the lines of one track.
   static String trackMap(String trackId) => '/tracks/$trackId/map';
+
+  /// Fine-tune one line of a track (coordinates, nudge, rotate).
+  static String trackLine(String trackId, LineRef line) => Uri(
+    path: '/tracks/$trackId/line',
+    queryParameters: {'ref': line.encode()},
+  ).toString();
 
   /// Detail of one session.
   static String sessionDetail(String sessionId) => '/sessions/$sessionId';
@@ -78,6 +87,19 @@ final GoRouter appRouter = GoRouter(
               builder: (_, state) => TrackMapScreen(
                 trackId: state.pathParameters['trackId'] ?? '',
               ),
+            ),
+            GoRoute(
+              path: 'line',
+              builder: (_, state) {
+                final line = LineRef.tryDecode(
+                  state.uri.queryParameters['ref'],
+                );
+                if (line == null) return const SizedBox.shrink();
+                return LineEditorScreen(
+                  trackId: state.pathParameters['trackId'] ?? '',
+                  lineRef: line,
+                );
+              },
             ),
           ],
         ),

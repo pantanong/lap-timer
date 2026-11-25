@@ -123,6 +123,60 @@ class GateLine {
     widthMetres: widthMetres,
   );
 
+  /// The same line with its centre moved to [newLatitude]/[newLongitude]
+  /// (orientation and width unchanged).
+  GateLine movedTo(double newLatitude, double newLongitude) => GateLine(
+    latitude: newLatitude,
+    longitude: newLongitude,
+    travelBearingDegrees: travelBearingDegrees,
+    axisBearingDegrees: axisBearingDegrees,
+    widthMetres: widthMetres,
+  );
+
+  /// The same line shifted [eastMetres] east and [northMetres] north
+  /// (negative values go west/south). Used by the nudge buttons.
+  GateLine movedBy({double eastMetres = 0, double northMetres = 0}) {
+    final projection = LocalProjection(
+      originLatitude: latitude,
+      originLongitude: longitude,
+    );
+    final (lat, lon) = projection.toLatLng(LocalPoint(eastMetres, northMetres));
+    return movedTo(lat, lon);
+  }
+
+  /// The same line turned clockwise by [degrees] around its centre
+  /// (negative turns anticlockwise). A known travel direction turns with
+  /// it; a point-only line gets an orientation, starting from north–south.
+  GateLine rotatedBy(double degrees) {
+    final travel = travelBearingDegrees;
+    final axis = axisBearingDegrees;
+    return GateLine(
+      latitude: latitude,
+      longitude: longitude,
+      travelBearingDegrees: travel == null
+          ? null
+          : _wrap(travel + degrees, 360),
+      axisBearingDegrees: axis == null && travel != null
+          ? null
+          : _wrap((axis ?? 0) + degrees, 180),
+      widthMetres: widthMetres,
+    );
+  }
+
+  /// The same line with a new total length, kept between 2 m and 200 m.
+  GateLine withWidth(double metres) => GateLine(
+    latitude: latitude,
+    longitude: longitude,
+    travelBearingDegrees: travelBearingDegrees,
+    axisBearingDegrees: axisBearingDegrees,
+    widthMetres: metres.clamp(2, 200).toDouble(),
+  );
+
+  static double _wrap(double value, double range) {
+    final r = value % range;
+    return r < 0 ? r + range : r;
+  }
+
   /// JSON for storage.
   Map<String, Object?> toJson() => {
     'lat': latitude,

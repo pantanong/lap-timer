@@ -477,21 +477,27 @@ class SectorBox extends StatelessWidget {
                 overflow: TextOverflow.clip,
                 style: TextStyle(color: colors.textMuted, fontSize: 13),
               ),
-              Text(
-                big,
-                maxLines: 1,
-                style: TextStyle(
-                  // Fit both the box height and its width (≈0.62 em per
-                  // glyph for tabular digits).
-                  fontSize: math.min(
-                    // Box height minus the label line.
-                    (constraints.maxHeight - 26) * (compact ? 0.7 : 0.92),
-                    (constraints.maxWidth - 24) / (big.length * 0.62),
+              // The number always stays inside the box: sized from the box,
+              // and scaled down further if it would still not fit.
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Text(
+                    big,
+                    maxLines: 1,
+                    style: TextStyle(
+                      fontSize: math.min(
+                        // Box height minus the label line.
+                        (constraints.maxHeight - 26) * (compact ? 0.7 : 0.92),
+                        (constraints.maxWidth - 24) / (big.length * 0.62),
+                      ),
+                      fontWeight: FontWeight.w800,
+                      height: 1,
+                      color: bigColor,
+                      fontFeatures: AppTheme.tabularFigures,
+                    ),
                   ),
-                  fontWeight: FontWeight.w800,
-                  height: 1,
-                  color: bigColor,
-                  fontFeatures: AppTheme.tabularFigures,
                 ),
               ),
             ],

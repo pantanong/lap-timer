@@ -7,7 +7,9 @@ import 'package:lap_timer/app/infrastructure_providers.dart';
 import 'package:lap_timer/app/routes.dart';
 import 'package:lap_timer/core/ui/page_padding.dart';
 import 'package:lap_timer/features/tracks/data/track_editing.dart';
+import 'package:lap_timer/features/tracks/data/track_file_service.dart';
 import 'package:lap_timer/features/tracks/domain/gate_line.dart';
+import 'package:lap_timer/features/tracks/domain/line_ref.dart';
 import 'package:lap_timer/features/tracks/domain/line_spacing.dart';
 import 'package:lap_timer/features/tracks/domain/track.dart';
 import 'package:lap_timer/features/tracks/presentation/position_capture_notifier.dart';
@@ -47,6 +49,11 @@ class TrackEditorScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(track.name),
         actions: [
+          IconButton(
+            tooltip: l10n.trackExport,
+            icon: const Icon(Icons.share),
+            onPressed: () => unawaited(_export(context, ref, track)),
+          ),
           IconButton(
             tooltip: l10n.actionRename,
             icon: const Icon(Icons.edit),
@@ -102,6 +109,16 @@ class TrackEditorScreen extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _export(BuildContext context, WidgetRef ref, Track track) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final failed = AppLocalizations.of(context).trackExportFailed;
+    try {
+      await ref.read(trackFileServiceProvider).export(track);
+    } on Exception {
+      messenger.showSnackBar(SnackBar(content: Text(failed)));
+    }
   }
 
   Future<void> _rename(BuildContext context, WidgetRef ref, Track track) async {
@@ -188,7 +205,14 @@ class _LineTile extends ConsumerWidget {
           color: isSet ? colors.faster : colors.textMuted,
         ),
         title: Text(title),
-        subtitle: Text(isSet ? l10n.trackLineSet : l10n.trackLineNotSet),
+        subtitle: Text(switch (gate) {
+          _? => l10n.trackLineTapToAdjust,
+          null => l10n.trackLineNotSet,
+        }),
+        // Tap to fine-tune: type coordinates, nudge, rotate, or move it on
+        // the map (also works for a line not set yet).
+        onTap: () =>
+            context.push(AppRoutes.trackLine(trackId, SingleLineRef(line))),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [

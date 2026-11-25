@@ -1,7 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:lap_timer/app/routes.dart';
 import 'package:lap_timer/features/tracks/data/track_editing.dart';
+import 'package:lap_timer/features/tracks/domain/line_ref.dart';
 import 'package:lap_timer/features/tracks/domain/track.dart';
 import 'package:lap_timer/features/tracks/presentation/position_capture_notifier.dart';
 import 'package:lap_timer/features/tracks/presentation/text_prompt.dart';
@@ -63,6 +66,28 @@ class SectorLayoutCard extends ConsumerWidget {
             Text(
               l10n.trackLayoutSummary(layout.sectorCount, layout.splits.length),
             ),
+            if (layout.splits.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(l10n.trackSplitsTapToAdjust),
+              const SizedBox(height: 4),
+              Wrap(
+                spacing: 8,
+                runSpacing: 4,
+                children: [
+                  for (var i = 0; i < layout.splits.length; i++)
+                    ActionChip(
+                      avatar: const Icon(Icons.tune, size: 18),
+                      label: Text('S${i + 1}|${i + 2}'),
+                      onPressed: () => context.push(
+                        AppRoutes.trackLine(
+                          track.id,
+                          SplitLineRef(layout.id, i),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ],
             const SizedBox(height: 8),
             Row(
               children: [

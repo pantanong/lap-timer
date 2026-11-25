@@ -923,5 +923,128 @@
         "type": "int"
       }
     }
+  },
+  "lineEditorTapHint": "Tap the map to move the centre of the line there. Pinch to zoom.",
+  "@lineEditorTapHint": {
+    "description": "Hint above the line editor map."
+  },
+  "lineEditorCoordinates": "Centre: latitude, longitude",
+  "@lineEditorCoordinates": {
+    "description": "Label of the coordinate field."
+  },
+  "lineEditorCoordinatesHelp": "Paste from Google Maps, e.g. 14.958300, 103.084800",
+  "@lineEditorCoordinatesHelp": {
+    "description": "Helper text of the coordinate field."
+  },
+  "lineEditorBadCoordinates": "Type latitude, longitude — e.g. 14.958300, 103.084800",
+  "@lineEditorBadCoordinates": {
+    "description": "Error for unreadable coordinates."
+  },
+  "lineEditorApply": "Apply",
+  "@lineEditorApply": {
+    "description": "Apply typed coordinates."
+  },
+  "lineEditorMove": "Move · step in metres",
+  "@lineEditorMove": {
+    "description": "Section title: nudge buttons."
+  },
+  "lineEditorNorth": "Move north (up)",
+  "@lineEditorNorth": {
+    "description": "Tooltip."
+  },
+  "lineEditorSouth": "Move south (down)",
+  "@lineEditorSouth": {
+    "description": "Tooltip."
+  },
+  "lineEditorEast": "Move east (right)",
+  "@lineEditorEast": {
+    "description": "Tooltip."
+  },
+  "lineEditorWest": "Move west (left)",
+  "@lineEditorWest": {
+    "description": "Tooltip."
+  },
+  "lineEditorRotate": "Rotate · {degrees}°",
+  "@lineEditorRotate": {
+    "description": "Section title with the current line angle (0 = north–south).",
+    "placeholders": {
+      "degrees": {
+        "type": "int"
+      }
+    }
+  },
+  "lineEditorWidth": "Line length · {metres} m",
+  "@lineEditorWidth": {
+    "description": "Section title with the current line length.",
+    "placeholders": {
+      "metres": {
+        "type": "int"
+      }
+    }
+  },
+  "lineEditorShorter": "Shorter",
+  "@lineEditorShorter": {
+    "description": "Tooltip."
+  },
+  "lineEditorLonger": "Longer",
+  "@lineEditorLonger": {
+    "description": "Tooltip."
+  },
+  "lineEditorUseGps": "To my GPS position",
+  "@lineEditorUseGps": {
+    "description": "Moves the line to the current GPS position."
+  },
+  "lineEditorRevert": "Undo changes",
+  "@lineEditorRevert": {
+    "description": "Back to the saved line."
+  },
+  "lineEditorDeleteConfirm": "Remove this line?",
+  "@lineEditorDeleteConfirm": {
+    "description": "Confirm removing a line."
+  },
+  "lineEditorUnsaved": "Changes not saved yet",
+  "@lineEditorUnsaved": {
+    "description": "Shown while the draft differs."
+  },
+  "trackLineTapToAdjust": "Set · tap to adjust",
+  "@trackLineTapToAdjust": {
+    "description": "Subtitle of a set line."
+  },
+  "trackSplitsTapToAdjust": "Tap a split to adjust its position:",
+  "@trackSplitsTapToAdjust": {
+    "description": "Above the split chips of a layout."
+  },
+  "trackExport": "Export track (share file)",
+  "@trackExport": {
+    "description": "Share the track as a file."
+  },
+  "tracksImport": "Import track file",
+  "@tracksImport": {
+    "description": "Pick a track file."
+  },
+  "tracksImported": "Imported “{name}”",
+  "@tracksImported": {
+    "description": "After a successful import.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "tracksImportFailed": "This file is not a track exported by this app.",
+  "@tracksImportFailed": {
+    "description": "Import failed."
+  },
+  "trackExportFailed": "Could not export the track.",
+  "@trackExportFailed": {
+    "description": "Export failed."
+  },
+  "tracksImportExportHint": "Tip: export each track after setting it up (Drive, LINE, e-mail) so the lines are never lost.",
+  "@tracksImportExportHint": {
+    "description": "Hint on the tracks list."
+  },
+  "tracksImportShort": "Import",
+  "@tracksImportShort": {
+    "description": "App bar button: import a track file."
   }
 }

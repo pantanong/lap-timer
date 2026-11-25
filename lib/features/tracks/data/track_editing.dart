@@ -3,19 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lap_timer/app/infrastructure_providers.dart';
 import 'package:lap_timer/features/tracks/data/track_repository.dart';
 import 'package:lap_timer/features/tracks/domain/gate_line.dart';
+import 'package:lap_timer/features/tracks/domain/line_ref.dart';
 import 'package:lap_timer/features/tracks/domain/track.dart';
 
-/// Which single line of a track is being set.
-enum TrackLine {
-  /// Start/finish.
-  startFinish,
-
-  /// Pit lane entry.
-  pitEntry,
-
-  /// Pit lane exit.
-  pitExit,
-}
+export 'package:lap_timer/features/tracks/domain/line_ref.dart' show TrackLine;
 
 /// Every edit the track editor can make. Each method loads the latest
 /// track, applies one change and saves it through the repository (the
@@ -47,6 +38,27 @@ class TrackEditing {
           TrackLine.pitExit => t.copyWith(pitExit: gate),
         },
       );
+
+  /// Replaces any existing line (single or split), e.g. after moving or
+  /// rotating it in the line editor.
+  Future<void> replaceLine(String trackId, LineRef ref, GateLine gate) =>
+      _update(trackId, (t) => t.withLineAt(ref, gate));
+
+  /// Removes split number [index] of a layout (later splits move up).
+  Future<void> removeSplit(String trackId, String layoutId, int index) =>
+      _editLayout(
+        trackId,
+        layoutId,
+        (l) => l.copyWith(
+          splits: [
+            for (final (i, s) in l.splits.indexed)
+              if (i != index) s,
+          ],
+        ),
+      );
+
+  /// Adds an imported track as a new track (never overwrites one).
+  Future<void> importTrack(Track track) => _repository.save(track);
 
   /// Removes one of the single lines (e.g. pit lines on a practice track).
   Future<void> clearLine(String trackId, TrackLine line) => _update(

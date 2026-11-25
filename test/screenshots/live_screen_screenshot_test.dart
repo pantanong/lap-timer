@@ -415,4 +415,24 @@ void main() {
       'gap_4_lap',
     );
   });
+
+  testWidgets('user phone: lap 1, 4 sectors, system font 130 %', (t) async {
+    t.platformDispatcher.textScaleFactorTestValue = 1.3;
+    addTearDown(t.platformDispatcher.clearTextScaleFactorTestValue);
+    await _shot(
+      t,
+      LiveSessionState(
+        status: LiveSessionStatus.running,
+        sectorCount: 4,
+        compareMode: SectorCompareMode.bestLap,
+        currentLapStartMicros: 1000000,
+        currentSectorStartMicros: 1000000,
+        lastFixMicros: 17300000,
+        lastFixWallMicros: now,
+        gpsRateHz: 10,
+        raceRules: const RaceRules(id: 'r', name: 'Race'),
+      ),
+      'user_lap1_4sectors',
+    );
+  });
 }

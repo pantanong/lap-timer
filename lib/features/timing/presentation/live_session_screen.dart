@@ -69,25 +69,42 @@ class _LiveSessionScreenState extends ConsumerState<LiveSessionScreen> {
     return Scaffold(
       backgroundColor: colors.background,
       // The brake alert covers the whole screen, edge to edge.
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsetsDirectional.fromSTEB(20, 6, 20, 12),
-              child: switch (state.status) {
-                LiveSessionStatus.failed => _FailureView(state: state),
-                _ when state.pit != null || state.pitResult != null =>
-                  PitLaneView(state: state, onEnd: _end),
-                _ => _TimingView(state: state, onEnd: _end),
-              },
-            ),
-          ),
-          BrakeAlertOverlay(alert: state.brakeAlert),
-        ],
+      // Every size on this screen is computed from the space available, so
+      // the system font size must not enlarge it further (it would push
+      // numbers out of their boxes). Numbers here are already huge.
+      body: MediaQuery.withNoTextScaling(
+        child: _LiveBody(state: state, onEnd: _end),
       ),
     );
   }
+}
+
+class _LiveBody extends StatelessWidget {
+  const _LiveBody({required this.state, required this.onEnd});
+
+  final LiveSessionState state;
+  final Future<void> Function() onEnd;
+
+  @override
+  Widget build(BuildContext context) => Stack(
+    fit: StackFit.expand,
+    children: [
+      SafeArea(
+        child: Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(20, 6, 20, 12),
+          child: switch (state.status) {
+            LiveSessionStatus.failed => _FailureView(state: state),
+            _ when state.pit != null || state.pitResult != null => PitLaneView(
+              state: state,
+              onEnd: onEnd,
+            ),
+            _ => _TimingView(state: state, onEnd: onEnd),
+          },
+        ),
+      ),
+      BrakeAlertOverlay(alert: state.brakeAlert),
+    ],
+  );
 }
 
 class _FailureView extends StatelessWidget {
